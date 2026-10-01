@@ -12,11 +12,11 @@ HTML, CSS, and TypeScript with Vite; no framework or backend. Confirmed in the u
 
 ## Users
 
-Disney Speedstorm players who want to know how many Racer Shards their Racer still needs to unlock a target Star.
+Disney Speedstorm players who want to know how many Racer Shards and Tune Coins their Racer still needs to unlock a target Star.
 
 ## Product Purpose
 
-Translate a Racer's Star and Star Fragment progress, plus the Racer Shards in inventory, into a clear, immediate estimate of the shards still needed.
+Translate a Racer's Star and Star Fragment progress, plus Racer Shards and Tune Coins in inventory, into clear, immediate estimates of both currencies still needed.
 
 ## Operating Context
 
@@ -25,12 +25,12 @@ Used on mobile and desktop, including offline after the first complete load. Pre
 ## Capabilities and Constraints
 
 - Current Stars: 0–6. Star Fragments unlocked toward the next Star: 0–4. Target: 1–6.
-- Each Star takes five Star Fragments. Season 22 costs: 15, 25, 35, 45, 65, and 75 Racer Shards per Star.
-- Star Fragments describe progression already unlocked on the Racer. Racer Shards describe inventory available to spend.
-- Subtract current Star Fragment progress first, then inventory Racer Shards. The result never goes below zero.
-- Defaults: 0 Stars, 0 Star Fragments, target 1 Star, 0 Racer Shards. Six Stars is the maximum.
-- Accept whole numbers within the valid ranges. An empty inventory field is zero. Show errors beside the field.
-- No Racer catalogue, Tune Coins, earlier rules, public API, or login.
+- Each Star takes five Star Fragments. Season 22 costs per Star: 15, 25, 35, 45, 65, and 75 Racer Shards; 1,500, 2,500, 3,500, 4,500, 6,500, and 7,500 Tune Coins.
+- Star Fragments describe progression already unlocked on the Racer. Racer Shards and Tune Coins describe inventory available to spend.
+- Subtract current Star Fragment progress first, then subtract Racer Shards and Tune Coins in inventory independently. Neither result goes below zero.
+- Defaults: 0 Stars, 0 Star Fragments, target 1 Star, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum.
+- Accept whole numbers within the valid ranges. Empty inventory fields mean zero. Show errors beside each field.
+- No Racer catalogue, earlier rules, public API, or login.
 - Ask before applying an update; preserve each tab's fields across the reload.
 - The public source repository is `AugustoMarcelo/speedstorm-calculator`; GitHub Actions publishes it to GitHub Pages.
 
@@ -45,7 +45,7 @@ The approved implementation plan and the official [Racer Progression Update](htt
 ## Product Principles
 
 - Calculate immediately without a submit button.
-- Clearly separate a Racer's unlocked Star Fragments from Racer Shards in inventory.
+- Clearly separate a Racer's unlocked Star Fragments from Racer Shards and Tune Coins in inventory.
 - Keep game data and pure calculation logic separate from the interface.
 - Work without a network after the app cache is ready.
 

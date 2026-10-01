@@ -10,6 +10,7 @@ import { setupOffline } from './offline';
 
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
+const tuneCoinBalance = document.querySelector<HTMLInputElement>('#tune-coin-balance')!;
 const stepsFieldset = document.querySelector<HTMLFieldSetElement>('#steps-fieldset')!;
 const panel = document.querySelector<HTMLElement>('.result-panel')!;
 const format = new Intl.NumberFormat('en-US');
@@ -41,7 +42,13 @@ function select(name: string, value: number) {
 }
 
 function snapshot() {
-  return { currentStars: selected('currentStars'), completedSteps: selected('completedSteps'), targetStars: selected('targetStars'), balance: balance.value };
+  return {
+    currentStars: selected('currentStars'),
+    completedSteps: selected('completedSteps'),
+    targetStars: selected('targetStars'),
+    balance: balance.value,
+    tuneCoinBalance: tuneCoinBalance.value,
+  };
 }
 
 function restore() {
@@ -52,11 +59,12 @@ function restore() {
     const state = JSON.parse(saved);
     if (typeof state.balance !== 'string') return;
     // Validate stored selections; preserve even an unfinished balance edit.
-    calculate({ ...state, balance: 0 });
+    calculate({ ...state, balance: 0, tuneCoinBalance: 0 });
     select('currentStars', state.currentStars);
     select('completedSteps', state.completedSteps);
     select('targetStars', state.targetStars);
     balance.value = state.balance;
+    tuneCoinBalance.value = typeof state.tuneCoinBalance === 'string' ? state.tuneCoinBalance : '0';
   } catch {
     // Storage may be unavailable or contain data from an older version.
   }
@@ -73,48 +81,55 @@ function update() {
   const completedSteps = selected('completedSteps');
   const targetStars = selected('targetStars');
   const parsedBalance = parseBalance(balance.value);
+  const parsedTuneCoinBalance = parseBalance(tuneCoinBalance.value);
+  const invalidShards = parsedBalance === null;
+  const invalidTuneCoins = parsedTuneCoinBalance === null;
   const maxed = currentStars === MAX_STARS;
   stepsFieldset.disabled = maxed;
   text('step-note', maxed
     ? 'Maximum upgrade reached: all 6 stars unlocked.'
     : `${completedSteps} of 5 Star Fragments unlocked toward your ${ordinal(currentStars + 1)} star.`);
   document.querySelector('#result-target span')!.textContent = `${ordinal(targetStars)} Star`;
-  document.getElementById('balance-error')!.hidden = parsedBalance !== null;
-  balance.setAttribute('aria-invalid', String(parsedBalance === null));
+  document.getElementById('balance-error')!.hidden = !invalidShards;
+  document.getElementById('tune-coin-error')!.hidden = !invalidTuneCoins;
+  balance.setAttribute('aria-invalid', String(invalidShards));
+  tuneCoinBalance.setAttribute('aria-invalid', String(invalidTuneCoins));
 
-  if (parsedBalance === null) {
-    panel.classList.remove('is-complete');
-    for (const id of ['missing', 'total', 'remaining', 'applied-balance']) text(id, '—');
-    text('result-label', 'Check your inventory');
-    text('result-description', 'Enter a valid shard amount');
-    text('result-message', 'Racer Shards must be a whole number with no signs or separators.');
-    text('breakdown-list', '');
-    document.getElementById('empty-breakdown')!.hidden = true;
-    text('route-caption', 'Check your shard amount to continue');
-    announce('Invalid inventory. Enter a whole number of Racer Shards, with no signs or separators.');
-    return;
-  }
-
-  const input: CalculatorInput = { currentStars, completedSteps, targetStars, balance: parsedBalance };
+  const input: CalculatorInput = {
+    currentStars,
+    completedSteps,
+    targetStars,
+    balance: parsedBalance ?? 0,
+    tuneCoinBalance: parsedTuneCoinBalance ?? 0,
+  };
   const result = calculate(input);
   const reached = targetStars <= currentStars;
-  panel.classList.toggle('is-complete', result.missing === 0);
-  text('result-label', maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : result.missing === 0 ? 'Ready to upgrade' : 'Racer Shards still needed');
-  text('missing', format.format(result.missing));
-  text('result-description', result.missing === 0 ? 'Racer Shards needed for this target' : 'Racer Shards to unlock your target');
-  const message = maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
+  const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
+  panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
+  text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
+  text('missing', invalidShards ? '—' : format.format(result.missing));
+  text('result-description', invalidShards ? 'Enter a valid Racer Shard amount' : 'Racer Shards to unlock your target');
+  const message = invalidShards && invalidTuneCoins ? 'Enter whole-number balances for Racer Shards and Tune Coins.'
+    : invalidShards ? 'Racer Shards must be a whole number with no signs or separators.'
+      : invalidTuneCoins ? 'Tune Coins must be a whole number with no signs or separators.'
+        : maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
     : reached ? 'Your Racer has already unlocked this star. Choose another target.'
-      : result.missing === 0 ? 'You already have enough Racer Shards.'
-        : 'Each Star Fragment brings your Racer closer.';
+      : ready ? 'You have enough Racer Shards and Tune Coins.'
+        : result.missing === 0 ? `Racer Shards ready. You still need ${format.format(result.tuneCoinsMissing)} Tune Coins.`
+          : result.tuneCoinsMissing === 0 ? `Tune Coins ready. You still need ${format.format(result.missing)} Racer Shards.`
+            : `${format.format(result.missing)} Racer Shards and ${format.format(result.tuneCoinsMissing)} Tune Coins still needed.`;
   text('result-message', message);
   text('total', format.format(result.total));
-  text('applied-balance', `− ${format.format(result.appliedBalance)}`);
-  text('remaining', format.format(result.missing));
+  text('applied-balance', invalidShards ? '—' : `− ${format.format(result.appliedBalance)}`);
+  text('remaining', invalidShards ? '—' : format.format(result.missing));
+  text('tune-coins-total', format.format(result.tuneCoinTotal));
+  text('tune-coins-applied', invalidTuneCoins ? '—' : `− ${format.format(result.appliedTuneCoinBalance)}`);
+  text('tune-coins-remaining', invalidTuneCoins ? '—' : format.format(result.tuneCoinsMissing));
   document.getElementById('breakdown-list')!.innerHTML = result.breakdown.map(item =>
-    `<li><span class="breakdown-star">${item.star} ${starIcon}</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'} × ${item.costPerStep} Racer Shards</span><span class="breakdown-cost">${item.cost}<span class="sr-only"> Racer Shards</span></span></li>`).join('');
+    `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span>${format.format(item.cost)} <small>Racer Shards</small></span><span>${format.format(item.tuneCoinCost)} <small>Tune Coins</small></span></div></li>`).join('');
   document.getElementById('empty-breakdown')!.hidden = !reached;
   text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked' : currentStars === 0 ? `From the starting line to the ${ordinal(targetStars)} star` : `From ${currentStars} stars to ${targetStars} stars`);
-  announce(result.missing === 0 ? message : `${result.missing} Racer Shards still needed to reach ${targetStars} stars. Total cost: ${result.total}. Inventory shards used: ${result.appliedBalance}.`);
+  announce(invalidShards || invalidTuneCoins ? message : ready ? message : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetStars} stars.`);
 }
 
 function ordinal(value: number): string {
@@ -135,7 +150,7 @@ document.querySelectorAll('[data-season]').forEach(element => { element.textCont
 document.querySelector<HTMLAnchorElement>('#source-link')!.href = PROGRESSION.source;
 text('rule-date', `Rules effective ${new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(PROGRESSION.effectiveAt))}`);
 document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.map((cost, index) =>
-  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost / PROGRESSION.stepsPerStar}</td><td>${cost}</td></tr>`).join('');
+  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost / PROGRESSION.stepsPerStar}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index] / PROGRESSION.stepsPerStar)}</td></tr>`).join('');
 
 restore();
 update();

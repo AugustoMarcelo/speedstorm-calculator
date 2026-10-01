@@ -25,10 +25,13 @@ test('calculates examples, reports errors, and resets', async ({ page }) => {
   await expect(page.locator('#missing')).toHaveText('14');
   await page.getByLabel('Racer Shards in inventory').fill('5');
   await expect(page.locator('#missing')).toHaveText('9');
-  await expect(page.locator('#breakdown-list')).toContainText('2 Star Fragments × 7 Racer Shards');
+  await expect(page.locator('#breakdown-list')).toContainText('2 Star Fragments');
+  await expect(page.locator('#breakdown-list')).toContainText('14 Racer Shards');
+  await expect(page.locator('#breakdown-list')).toContainText('1,400 Tune Coins');
   await expect(page.locator('#result-announcement')).toContainText('9 Racer Shards still needed');
   await page.getByLabel('Racer Shards in inventory').fill('100');
-  await expect(page.locator('#result-message')).toHaveText('You already have enough Racer Shards.');
+  await page.getByLabel('Tune Coins in inventory').fill('2000');
+  await expect(page.locator('#result-message')).toHaveText('You have enough Racer Shards and Tune Coins.');
   for (const invalid of ['-1', '1.5', '2,5', '1e2', '9007199254740992']) {
     await page.getByLabel('Racer Shards in inventory').fill(invalid);
     await expect(page.locator('#balance-error')).toBeVisible();
@@ -69,16 +72,42 @@ test('keyboard access, accessible names, focus, and reduced motion', async ({ pa
   await expect(page.locator('input[name="currentStars"][value="1"] + span')).toHaveCSS('outline-style', 'solid');
   await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
   await expect(page.locator('#balance')).toHaveAccessibleName('Racer Shards in inventory');
+  await expect(page.locator('#tune-coin-balance')).toHaveAccessibleName('Tune Coins in inventory');
   await expect(page.getByRole('link', { name: 'AugustoMarcelo on GitHub (opens in a new tab)' }))
     .toHaveAttribute('href', 'https://github.com/AugustoMarcelo');
   await expect(page.getByRole('link', { name: 'AugustoMarcelo on GitHub (opens in a new tab)' }))
     .toHaveAttribute('target', '_blank');
   await expect(page.locator('#result-announcement')).toHaveAttribute('aria-live', 'polite');
-  await page.getByText('See Racer Shard costs').click();
+  await page.getByText('See upgrade costs').click();
   await expect(page.getByRole('table')).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByLabel('Racer Shards in inventory').fill('-2');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test('calculates Tune Coin cost and subtracts the Tune Coin balance', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('#tune-coins-total')).toHaveText('1,500');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('1,500');
+  await choose(page, 'targetStars', 6);
+  await expect(page.locator('#tune-coins-total')).toHaveText('26,000');
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 3);
+  await choose(page, 'targetStars', 3);
+  await page.getByLabel('Racer Shards in inventory').fill('5');
+  await page.getByLabel('Tune Coins in inventory').fill('500');
+  await expect(page.locator('#missing')).toHaveText('9');
+  await expect(page.locator('#tune-coins-total')).toHaveText('1,400');
+  await expect(page.locator('#tune-coins-applied')).toHaveText('− 500');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('900');
+  await expect(page.locator('#breakdown-list')).toContainText('1,400 Tune Coins');
+  await page.getByLabel('Tune Coins in inventory').fill('1.5');
+  await expect(page.locator('#tune-coin-error')).toBeVisible();
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('—');
+  await expect(page.locator('#missing')).toHaveText('9');
+  await page.getByLabel('Tune Coins in inventory').fill('2000');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('0');
+  await expect(page.locator('#result-message')).toHaveText('Tune Coins ready. You still need 9 Racer Shards.');
 });
 
 test('responsive layout has no horizontal overflow', async ({ page }) => {
@@ -95,7 +124,7 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   }
   await choose(page, 'targetStars', 6);
   await page.getByLabel('Racer Shards in inventory').fill('9007199254740991');
-  await page.getByText('See Racer Shard costs').click();
+  await page.getByText('See upgrade costs').click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
@@ -138,12 +167,14 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await choose(page, 'completedSteps', 3);
   await choose(page, 'targetStars', 3);
   await page.getByLabel('Racer Shards in inventory').fill('5');
+  await page.getByLabel('Tune Coins in inventory').fill('750');
   await page.evaluate(() => caches.open('another-app'));
   const oldCaches = await page.evaluate(() => caches.keys());
   const second = await context.newPage();
   await second.goto('./');
   await choose(second, 'targetStars', 6);
   await second.getByLabel('Racer Shards in inventory').fill('7');
+  await second.getByLabel('Tune Coins in inventory').fill('1000');
   await request.get('/__test/v2');
   await page.evaluate(async () => { const registration = await navigator.serviceWorker.ready; await registration.update(); });
   await expect(page.locator('#update-notice')).toBeVisible();
@@ -152,9 +183,11 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await expect(page.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
   await expect(page.locator('#missing')).toHaveText('9');
   await expect(page.locator('#balance')).toHaveValue('5');
+  await expect(page.locator('#tune-coin-balance')).toHaveValue('750');
   await expect(page.locator('input[name="completedSteps"][value="3"]')).toBeChecked();
   await expect(second.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
   await expect(second.locator('#missing')).toHaveText('253');
+  await expect(second.locator('#tune-coin-balance')).toHaveValue('1000');
   const newCaches = await page.evaluate(() => caches.keys());
   expect(newCaches).toContain('another-app');
   expect(newCaches.filter(name => name.startsWith('speedstorm:'))).toHaveLength(1);

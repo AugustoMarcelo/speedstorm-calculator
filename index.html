@@ -17,6 +17,7 @@
     <svg class="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9Z"/></symbol>
       <symbol id="icon-shard" viewBox="0 0 32 40"><path d="m18 2 11 11-10 25L3 26Z" fill="currentColor"/><path d="m18 2-4 21L3 26m11-3 15-10M14 23l5 15" fill="none" stroke="var(--bg)" stroke-width="1.6"/></symbol>
+      <symbol id="icon-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/><path d="M8 12h8m-4-4v8" fill="none" stroke="var(--bg)" stroke-width="1.7" stroke-linecap="round"/></symbol>
       <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="icon-external" viewBox="0 0 24 24"><path d="M6 18 18 6M7 6h11v11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -57,11 +58,19 @@
               <legend>Target star</legend>
               <div class="choices star-choices" id="target-stars"></div>
             </fieldset>
-            <div class="field-group balance-group">
-              <label for="balance">Racer Shards in inventory</label>
-              <p class="field-hint" id="balance-hint">Shards you have available to spend on upgrades.</p>
-              <div class="balance-input"><svg aria-hidden="true"><use href="#icon-shard"/></svg><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
-              <p class="field-error" id="balance-error" hidden>Enter a whole number of Racer Shards from 0 to 9,007,199,254,740,991, without separators.</p>
+            <div class="field-group balances-group">
+              <div class="balance-entry">
+                <label for="balance">Racer Shards in inventory</label>
+                <p class="field-hint" id="balance-hint">Shards you have available to spend on upgrades.</p>
+                <div class="balance-input"><svg aria-hidden="true"><use href="#icon-shard"/></svg><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
+                <p class="field-error" id="balance-error" hidden>Enter a whole number of Racer Shards from 0 to 9,007,199,254,740,991, without separators.</p>
+              </div>
+              <div class="balance-entry">
+                <label for="tune-coin-balance">Tune Coins in inventory</label>
+                <p class="field-hint" id="tune-coin-hint">Tune Coins you have available to spend on upgrades.</p>
+                <div class="balance-input"><svg aria-hidden="true"><use href="#icon-coin"/></svg><input id="tune-coin-balance" name="tuneCoinBalance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="tune-coin-hint tune-coin-error" /><span aria-hidden="true">Tune Coins</span></div>
+                <p class="field-error" id="tune-coin-error" hidden>Enter a whole number of Tune Coins from 0 to 9,007,199,254,740,991, without separators.</p>
+              </div>
             </div>
           </form>
 
@@ -74,22 +83,25 @@
             </div>
             <p id="result-message" class="result-message">Every Star Fragment brings your Racer closer.</p>
             <dl class="cost-summary">
-              <div><dt>Total cost to target</dt><dd id="total">15</dd></div>
-              <div><dt>Inventory shards used</dt><dd id="applied-balance">− 0</dd></div>
+              <div><dt>Total Racer Shards</dt><dd id="total">15</dd></div>
+              <div><dt>Inventory Racer Shards used</dt><dd id="applied-balance">− 0</dd></div>
               <div class="remaining-row"><dt>Racer Shards still needed</dt><dd id="remaining">15</dd></div>
+              <div class="currency-start"><dt>Total Tune Coins</dt><dd id="tune-coins-total">1,500</dd></div>
+              <div><dt>Inventory Tune Coins used</dt><dd id="tune-coins-applied">− 0</dd></div>
+              <div class="remaining-row"><dt>Tune Coins still needed</dt><dd id="tune-coins-remaining">1,500</dd></div>
             </dl>
             <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already unlocked this star.</p></div>
             <div class="result-bottom"><span class="checkered-flag" aria-hidden="true"></span><span id="route-caption">From the starting line to the 1st star</span></div>
           </section>
         </div>
         <p class="sr-only" id="result-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
-        <noscript><p class="noscript">Enable JavaScript to use the calculator. Star costs: 15, 25, 35, 45, 65 and 75 Racer Shards. Each star takes 5 Star Fragments to unlock.</p></noscript>
+        <noscript><p class="noscript">Enable JavaScript to use the calculator. Each star takes 5 Star Fragments. Season 22 costs per star: 15, 25, 35, 45, 65 and 75 Racer Shards; 1,500, 2,500, 3,500, 4,500, 6,500 and 7,500 Tune Coins.</p></noscript>
 
         <section class="explanation" id="how-it-works" aria-labelledby="explanation-heading">
           <div class="explanation-intro"><h2 id="explanation-heading">Less math. <br>More racing.</h2><p>The same progression rules apply to every Racer.</p></div>
           <div class="explanation-content">
-            <p>Each star takes <strong>5 Star Fragments</strong> to unlock. One Star Fragment costs a different number of Racer Shards depending on the star. We add up the Star Fragments to your target, subtract your Racer’s progress, then subtract the shards in your inventory.</p>
-            <details><summary>See Racer Shard costs <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><div class="table-wrap"><table><caption>Season <span data-season>22</span> Racer Shard costs</caption><thead><tr><th scope="col">Star upgrade</th><th scope="col">Racer Shards per Star Fragment</th><th scope="col">Total Racer Shards</th></tr></thead><tbody id="progression-table"></tbody></table></div></details>
+            <p>Each star takes <strong>5 Star Fragments</strong> to unlock. Every fragment costs Racer Shards and Tune Coins, depending on the star. We add up the Star Fragments to your target, subtract your Racer’s progress, then subtract the Shards and Tune Coins in your inventory.</p>
+            <details><summary>See upgrade costs <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><div class="table-wrap"><table><caption>Season <span data-season>22</span> costs per Star Fragment</caption><thead><tr><th scope="col">Star upgrade</th><th scope="col">Racer Shards</th><th scope="col">Tune Coins</th></tr></thead><tbody id="progression-table"></tbody></table></div></details>
             <a class="source-link" id="source-link" href="https://disneyspeedstorm.com/news/disney-speedstorm-racer-progression-update" target="_blank" rel="noopener noreferrer">Official progression rules <svg aria-hidden="true"><use href="#icon-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a><span class="rule-date" id="rule-date"></span>
           </div>
         </section>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 
-const input: CalculatorInput = { currentStars: 0, completedSteps: 0, targetStars: 1, balance: 0 };
+const input: CalculatorInput = { currentStars: 0, completedSteps: 0, targetStars: 1, balance: 0, tuneCoinBalance: 0 };
 
 describe('Season 22 progression', () => {
   it.each([
@@ -17,15 +17,15 @@ describe('Season 22 progression', () => {
     [5, 4, 6, 0, 15, 15],
   ])('%i Stars, %i Star Fragments, %i-Star target, %i inventory: %i total, %i needed',
     (currentStars, completedSteps, targetStars, balance, total, missing) => {
-      expect(calculate({ currentStars, completedSteps, targetStars, balance })).toMatchObject({ total, missing });
+      expect(calculate({ ...input, currentStars, completedSteps, targetStars, balance })).toMatchObject({ total, missing });
     });
 
   it('subtracts progress from the next Star and inventory from the total', () => {
-    expect(calculate({ currentStars: 2, completedSteps: 3, targetStars: 4, balance: 5 })).toEqual({
-      total: 59, missing: 54, appliedBalance: 5,
+    expect(calculate({ ...input, currentStars: 2, completedSteps: 3, targetStars: 4, balance: 5 })).toEqual({
+      total: 59, missing: 54, appliedBalance: 5, tuneCoinTotal: 5900, tuneCoinsMissing: 5900, appliedTuneCoinBalance: 0,
       breakdown: [
-        { star: 3, steps: 2, costPerStep: 7, cost: 14 },
-        { star: 4, steps: 5, costPerStep: 9, cost: 45 },
+        { star: 3, steps: 2, costPerStep: 7, cost: 14, tuneCoinsPerStep: 700, tuneCoinCost: 1400 },
+        { star: 4, steps: 5, costPerStep: 9, cost: 45, tuneCoinsPerStep: 900, tuneCoinCost: 4500 },
       ],
     });
   });
@@ -35,11 +35,22 @@ describe('Season 22 progression', () => {
     expect(calculate({ ...input, currentStars: 3 }).breakdown).toEqual([]);
   });
 
+  it('calculates Tune Coins in parallel with Racer Shards and subtracts coin inventory', () => {
+    expect(calculate({ ...input, currentStars: 0, targetStars: 6, tuneCoinBalance: 0 })).toMatchObject({
+      total: 260, missing: 260, tuneCoinTotal: 26_000, tuneCoinsMissing: 26_000,
+    });
+    expect(calculate({ ...input, currentStars: 2, completedSteps: 3, targetStars: 3, balance: 5, tuneCoinBalance: 500 })).toMatchObject({
+      total: 14, missing: 9, tuneCoinTotal: 1_400, tuneCoinsMissing: 900,
+      breakdown: [{ star: 3, steps: 2, costPerStep: 7, cost: 14, tuneCoinsPerStep: 700, tuneCoinCost: 1_400 }],
+    });
+  });
+
   it.each([
     { currentStars: -1 }, { currentStars: 7 }, { currentStars: 1.5 },
     { targetStars: 0 }, { targetStars: 7 }, { targetStars: 2.5 },
     { completedSteps: -1 }, { completedSteps: 5 }, { completedSteps: 1.5 },
     { balance: -1 }, { balance: 0.5 }, { balance: NaN }, { balance: Infinity },
+    { tuneCoinBalance: -1 }, { tuneCoinBalance: 0.5 }, { tuneCoinBalance: Number.MAX_SAFE_INTEGER + 1 },
     { balance: Number.MAX_SAFE_INTEGER + 1 }, { currentStars: 6, completedSteps: 1 },
   ])('rejects invalid values: %j', (invalid) => {
     expect(() => calculate({ ...input, ...invalid })).toThrow(RangeError);

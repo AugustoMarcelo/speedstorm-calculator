@@ -137,17 +137,17 @@ Inputs and radio choices use small `6px` corners. The calculator uses a `14px` r
 
 Native radio inputs use clickable labels, arrow-key operation, at least `46px` hit targets, and a cyan focus ring. The Star Fragment choices describe already unlocked progress toward the next Star; at six Stars the controls are disabled.
 
-### Racer Shards inventory field
+### Currency inventory fields
 
-A single horizontal field pairs the shard icon and numeric value with a visible “Racer Shards” unit. It uses a `52px` minimum height. Focus outlines the full control in cyan; invalid input uses the error color and an adjacent correction message.
+Separate horizontal fields pair shard and coin icons and numeric values with visible “Racer Shards” and “Tune Coins” units. Each uses a `52px` minimum height. Focus outlines the full control in cyan; invalid input uses the error color and an adjacent correction message.
 
 ### Calculator and result panels
 
-The form and summary sit in one rounded outlined container. A divider separates the desktop columns; on mobile it runs between stacked panels. The large yellow number makes the Racer Shards still needed easy to spot. A per-Star Fragment breakdown shows the cost per Star Fragment in Racer Shards.
+The form and summary sit in one rounded outlined container. A divider separates the desktop columns; on mobile it runs between stacked panels. The large yellow number makes Racer Shards still needed easy to spot; the summary reports both currencies still needed. A per-Star breakdown shows remaining Star Fragments and their costs in both currencies.
 
 ### Expandable progression table
 
-A native disclosure reveals the Season 22 costs in an aligned table. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
+A native disclosure reveals Season 22 costs per Star Fragment in both currencies. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
 
 ### Update notice and links
 
@@ -156,8 +156,8 @@ The fixed update notice uses a light surface and dark text; its dark Update butt
 ## Do's and Don'ts
 
 ### Do:
-- **Do** reserve cyan for focus and selection, and yellow for Stars and Racer Shards still needed.
-- **Do** call inventory **Racer Shards** and unlocked progress **Star Fragments**.
+- **Do** reserve cyan for focus and selection, and yellow for Stars and the prominent Racer Shards result.
+- **Do** call inventory currencies **Racer Shards** and **Tune Coins**, and unlocked progress **Star Fragments**.
 - **Do** retain Barlow Condensed for display numbers and Barlow for body and controls.
 - **Do** keep native controls and a visible keyboard focus ring.
 - **Do** stack the form and summary below `680px`.

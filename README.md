@@ -1,6 +1,6 @@
 # Disney Speedstorm Racer Shard Calculator
 
-A fan-made, English-language calculator for planning a Racer’s next star upgrade. See how many **Racer Shards** are still needed after accounting for the **Star Fragments** already unlocked toward the next star. Built with HTML, CSS, TypeScript, and Vite. No framework, backend, or runtime API requests.
+A fan-made, English-language calculator for planning a Racer’s next star upgrade. See how many **Racer Shards** and **Tune Coins** are still needed after accounting for the **Star Fragments** already unlocked and your inventory. Built with HTML, CSS, TypeScript, and Vite. No framework, backend, or runtime API requests.
 
 ## Run locally
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target, and 0 Racer Shards in inventory. Changing the current star resets Star Fragment progress, since that progress applies to the next star.
+Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target, and 0 Racer Shards and Tune Coins in inventory. Changing the current star resets Star Fragment progress, since that progress applies to the next star.
 
 ```sh
 npm run build
@@ -22,29 +22,29 @@ The production preview is at `http://localhost:4173/speedstorm-calculator/`. The
 
 ## Progression rules
 
-Each Star takes **5 Star Fragments** to unlock. Each fragment costs a different number of Racer Shards depending on the Star:
+Each Star takes **5 Star Fragments** to unlock. Each fragment costs a different number of Racer Shards and Tune Coins depending on the Star:
 
-| Star upgrade | Racer Shards per Star Fragment | Total Racer Shards |
-| --- | ---: | ---: |
-| 0 → 1 | 3 | 15 |
-| 1 → 2 | 5 | 25 |
-| 2 → 3 | 7 | 35 |
-| 3 → 4 | 9 | 45 |
-| 4 → 5 | 13 | 65 |
-| 5 → 6 | 15 | 75 |
+| Star upgrade | Racer Shards per fragment | Tune Coins per fragment | Total Racer Shards | Total Tune Coins |
+| --- | ---: | ---: | ---: | ---: |
+| 0 → 1 | 3 | 300 | 15 | 1,500 |
+| 1 → 2 | 5 | 500 | 25 | 2,500 |
+| 2 → 3 | 7 | 700 | 35 | 3,500 |
+| 3 → 4 | 9 | 900 | 45 | 4,500 |
+| 4 → 5 | 13 | 1,300 | 65 | 6,500 |
+| 5 → 6 | 15 | 1,500 | 75 | 7,500 |
 
 Source: [Racer Progression Update](https://disneyspeedstorm.com/news/disney-speedstorm-racer-progression-update), published September 17, 2026. The update was announced for September 24, 2026 (Season 22). Source checked October 1, 2026.
 
-The calculator adds the remaining Star Fragments needed to reach the target, subtracts the Star Fragments already unlocked toward the next Star, then subtracts Racer Shards in inventory: `missing = Math.max(0, totalCost - inventoryShards)`. A previously reached target costs zero.
+The calculator adds the remaining Star Fragments needed to reach the target, subtracts the Star Fragments already unlocked toward the next Star, then calculates each currency shortage independently: `missingShards = Math.max(0, shardCost - shardBalance)` and `missingTuneCoins = Math.max(0, tuneCoinCost - tuneCoinBalance)`. A previously reached target costs zero.
 
-Examples: 0 → 6 Stars costs 260 Racer Shards; 4 → 6 costs 140. From 2 Stars with 3 of 5 Star Fragments unlocked, reaching 3 Stars costs 14 Racer Shards; with 5 in inventory, 9 are still needed.
+Examples: 0 → 6 Stars costs 260 Racer Shards and 26,000 Tune Coins; 4 → 6 costs 140 Racer Shards and 14,000 Tune Coins. From 2 Stars with 3 of 5 Star Fragments unlocked, reaching 3 Stars costs 14 Racer Shards and 1,400 Tune Coins; with 5 Shards and 500 Tune Coins in inventory, 9 Shards and 900 Tune Coins are still needed.
 
-Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. An empty inventory field means zero.
+Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. Empty inventory fields mean zero.
 
 ### Updating the progression table
 
 1. Check an official update.
-2. Edit `src/progression.ts`: Star costs, Season, dates, and source. The UI table reads from these same values.
+2. Edit `src/progression.ts`: Racer Shard and Tune Coin costs, Season, dates, and source. The UI table reads from these same values.
 3. Update cases in `src/calculator.test.ts`, `tests/e2e/calculator.spec.ts`, and this README. If the progression structure changes, revisit the calculation and input ranges.
 4. Run `npm run check` and publish a new build.
 
@@ -86,4 +86,4 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 
 Impeccable is installed locally under `.agents/skills/impeccable`. The product and design records reflect the approved plan and the implemented English terminology.
 
-Fan-made project. Not affiliated with Disney or Gameloft. The calculator does not cover Tune Coins or earlier progression rules.
+Fan-made project. Not affiliated with Disney or Gameloft. The calculator does not cover earlier progression rules.
