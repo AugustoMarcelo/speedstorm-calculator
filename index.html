@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#091724" />
+    <meta name="description" content="Calculate how many Racer Shards you need to unlock your next star in Disney Speedstorm." />
+    <link rel="icon" href="./favicon.ico?v=2" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=2" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <title>Racer Shard Calculator · Speedstorm</title>
+  </head>
+  <body>
+    <svg class="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9Z"/></symbol>
+      <symbol id="icon-shard" viewBox="0 0 32 40"><path d="m18 2 11 11-10 25L3 26Z" fill="currentColor"/><path d="m18 2-4 21L3 26m11-3 15-10M14 23l5 15" fill="none" stroke="var(--bg)" stroke-width="1.6"/></symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="icon-external" viewBox="0 0 24 24"><path d="M6 18 18 6M7 6h11v11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    </svg>
+    <a class="skip-link" href="#calculator">Skip to calculator</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="wordmark" href="./" aria-label="Speedstorm home">
+          <span class="speed-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><span class="wordmark-disney">Disney</span><span class="wordmark-name">SPEEDSTORM</span></span>
+        </a>
+        <a class="help-link" href="#how-it-works">How it works <svg aria-hidden="true"><use href="#icon-external"/></svg></a>
+      </header>
+      <main>
+        <div class="intro">
+          <div>
+            <h1>Racer Shard <span>Calculator</span></h1>
+            <p>Know exactly how many shards your next star needs.</p>
+          </div>
+          <span class="season-label"><span class="status-dot" aria-hidden="true"></span>Season <span data-season>22</span></span>
+        </div>
+
+        <div class="calculator" id="calculator" tabindex="-1">
+          <form id="calculator-form" class="controls" novalidate>
+            <div class="panel-heading"><h2>Plan your next upgrade</h2><button type="reset" class="reset-button">Reset</button></div>
+            <fieldset class="field-group">
+              <legend>Current stars</legend>
+              <p class="field-hint" id="current-hint">How many stars has your Racer unlocked?</p>
+              <div class="choices star-choices" id="current-stars" role="group" aria-describedby="current-hint"></div>
+            </fieldset>
+            <fieldset class="field-group" id="steps-fieldset">
+              <legend>Star Fragments on next star</legend>
+              <p class="field-hint" id="steps-hint">Star Fragments already unlocked. The 5th fragment upgrades your Racer.</p>
+              <div class="steps-line"><div class="choices step-choices" id="completed-steps" role="group" aria-describedby="steps-hint"></div><span class="steps-total" aria-hidden="true">/ 5 Star Fragments</span></div>
+              <p class="field-note" id="step-note">No Star Fragments unlocked toward your next star.</p>
+            </fieldset>
+            <fieldset class="field-group target-group">
+              <legend>Target star</legend>
+              <div class="choices star-choices" id="target-stars"></div>
+            </fieldset>
+            <div class="field-group balance-group">
+              <label for="balance">Racer Shards in inventory</label>
+              <p class="field-hint" id="balance-hint">Shards you have available to spend on upgrades.</p>
+              <div class="balance-input"><svg aria-hidden="true"><use href="#icon-shard"/></svg><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
+              <p class="field-error" id="balance-error" hidden>Enter a whole number of Racer Shards from 0 to 9,007,199,254,740,991, without separators.</p>
+            </div>
+          </form>
+
+          <section class="result-panel" aria-labelledby="result-heading">
+            <div class="result-topline"><h2 id="result-heading">Upgrade summary</h2><span class="result-target" id="result-target"><svg aria-hidden="true"><use href="#icon-star"/></svg><span>1st Star</span></span></div>
+            <div class="result-number-area">
+              <p id="result-label" class="result-label">Racer Shards still needed</p>
+              <div class="result-value"><svg class="result-shard" aria-hidden="true"><use href="#icon-shard"/></svg><span id="missing">15</span></div>
+              <p id="result-description" class="result-description">Racer Shards to unlock your target</p>
+            </div>
+            <p id="result-message" class="result-message">Every Star Fragment brings your Racer closer.</p>
+            <dl class="cost-summary">
+              <div><dt>Total cost to target</dt><dd id="total">15</dd></div>
+              <div><dt>Inventory shards used</dt><dd id="applied-balance">− 0</dd></div>
+              <div class="remaining-row"><dt>Racer Shards still needed</dt><dd id="remaining">15</dd></div>
+            </dl>
+            <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already unlocked this star.</p></div>
+            <div class="result-bottom"><span class="checkered-flag" aria-hidden="true"></span><span id="route-caption">From the starting line to the 1st star</span></div>
+          </section>
+        </div>
+        <p class="sr-only" id="result-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+        <noscript><p class="noscript">Enable JavaScript to use the calculator. Star costs: 15, 25, 35, 45, 65 and 75 Racer Shards. Each star takes 5 Star Fragments to unlock.</p></noscript>
+
+        <section class="explanation" id="how-it-works" aria-labelledby="explanation-heading">
+          <div class="explanation-intro"><h2 id="explanation-heading">Less math. <br>More racing.</h2><p>The same progression rules apply to every Racer.</p></div>
+          <div class="explanation-content">
+            <p>Each star takes <strong>5 Star Fragments</strong> to unlock. One Star Fragment costs a different number of Racer Shards depending on the star. We add up the Star Fragments to your target, subtract your Racer’s progress, then subtract the shards in your inventory.</p>
+            <details><summary>See Racer Shard costs <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><div class="table-wrap"><table><caption>Season <span data-season>22</span> Racer Shard costs</caption><thead><tr><th scope="col">Star upgrade</th><th scope="col">Racer Shards per Star Fragment</th><th scope="col">Total Racer Shards</th></tr></thead><tbody id="progression-table"></tbody></table></div></details>
+            <a class="source-link" id="source-link" href="https://disneyspeedstorm.com/news/disney-speedstorm-racer-progression-update" target="_blank" rel="noopener noreferrer">Official progression rules <svg aria-hidden="true"><use href="#icon-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a><span class="rule-date" id="rule-date"></span>
+          </div>
+        </section>
+      </main>
+      <footer><p>Fan-made tool for players. Not affiliated with Disney or Gameloft.</p><p id="offline-status" role="status">Preparing offline access…</p></footer>
+    </div>
+    <div class="update-notice" id="update-notice" hidden><p role="status" id="update-message">A new version is available.</p><button type="button" id="update-button">Update <svg aria-hidden="true"><use href="#icon-arrow"/></svg></button></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

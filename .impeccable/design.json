@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T16:05:06Z",
+  "title": "Design System: Disney Speedstorm Racer Shard Calculator",
+  "extensions": {
+    "colorMeta": {
+      "navy-bg": {
+        "role": "neutral",
+        "displayName": "Deep Navy",
+        "canonical": "#091724",
+        "tonalRamp": [
+          "#020508",
+          "#030a11",
+          "#05101a",
+          "#07131f",
+          "#091724",
+          "#132737",
+          "#243849",
+          "#394d5e"
+        ]
+      },
+      "navy-panel": {
+        "role": "neutral",
+        "displayName": "Panel Navy",
+        "canonical": "#102233",
+        "tonalRamp": [
+          "#03070a",
+          "#050c12",
+          "#09141e",
+          "#0d1c28",
+          "#102233",
+          "#1b2d3c",
+          "#2d4050",
+          "#435565"
+        ]
+      },
+      "navy-result": {
+        "role": "neutral",
+        "displayName": "Result Blue",
+        "canonical": "#152c40",
+        "tonalRamp": [
+          "#040709",
+          "#080f16",
+          "#0d1923",
+          "#112334",
+          "#152c40",
+          "#20394c",
+          "#334d61",
+          "#4b6275"
+        ]
+      },
+      "navy-selected": {
+        "role": "neutral",
+        "displayName": "Selected Blue",
+        "canonical": "#173d4b",
+        "tonalRamp": [
+          "#040809",
+          "#071114",
+          "#0b1b20",
+          "#112a34",
+          "#173d4b",
+          "#254e5d",
+          "#3a6472",
+          "#547c88"
+        ]
+      },
+      "blue-line": {
+        "role": "neutral",
+        "displayName": "Outline Blue",
+        "canonical": "#30485c",
+        "tonalRamp": [
+          "#070a0d",
+          "#0d151c",
+          "#17232e",
+          "#233443",
+          "#30485c",
+          "#40596d",
+          "#587083",
+          "#748898"
+        ]
+      },
+      "blue-muted": {
+        "role": "neutral",
+        "displayName": "Soft Blue Text",
+        "canonical": "#abc0d1",
+        "tonalRamp": [
+          "#101315",
+          "#232a30",
+          "#39444d",
+          "#52616e",
+          "#718493",
+          "#91a4b3",
+          "#abc0d1",
+          "#c8d8e4"
+        ]
+      },
+      "text-light": {
+        "role": "neutral",
+        "displayName": "Light Text",
+        "canonical": "#edf4fa",
+        "tonalRamp": [
+          "#151718",
+          "#2b2e30",
+          "#45494c",
+          "#62676b",
+          "#838a8e",
+          "#abb4bb",
+          "#ced9e2",
+          "#edf4fa"
+        ]
+      },
+      "cyan-racing": {
+        "role": "primary",
+        "displayName": "Racing Cyan",
+        "canonical": "#65e3ef",
+        "tonalRamp": [
+          "#081213",
+          "#102729",
+          "#194044",
+          "#28666c",
+          "#3a9da7",
+          "#65e3ef",
+          "#9af0f6",
+          "#d2fafc"
+        ]
+      },
+      "star-yellow": {
+        "role": "secondary",
+        "displayName": "Star Yellow",
+        "canonical": "#ffda6a",
+        "tonalRamp": [
+          "#151207",
+          "#302810",
+          "#51431a",
+          "#806822",
+          "#c09c37",
+          "#ffda6a",
+          "#ffe89d",
+          "#fff5d1"
+        ]
+      },
+      "error-coral": {
+        "role": "tertiary",
+        "displayName": "Error Coral",
+        "canonical": "#ffb6b6",
+        "tonalRamp": [
+          "#160e0e",
+          "#301b1b",
+          "#542e2e",
+          "#854747",
+          "#c26c6c",
+          "#ffb6b6",
+          "#ffd0d0",
+          "#ffebeb"
+        ]
+      },
+      "disabled-bg": {
+        "role": "neutral",
+        "displayName": "Disabled Background",
+        "canonical": "#172735",
+        "tonalRamp": [
+          "#050708",
+          "#0a1015",
+          "#101a22",
+          "#17232d",
+          "#172735",
+          "#263744",
+          "#3c4c58",
+          "#566570"
+        ]
+      },
+      "disabled-line": {
+        "role": "neutral",
+        "displayName": "Disabled Border",
+        "canonical": "#3a4a59",
+        "tonalRamp": [
+          "#080a0c",
+          "#11171c",
+          "#1d272f",
+          "#2b3945",
+          "#3a4a59",
+          "#4e5e6c",
+          "#687785",
+          "#84919c"
+        ]
+      },
+      "disabled-text": {
+        "role": "neutral",
+        "displayName": "Disabled Text",
+        "canonical": "#93a6b5",
+        "tonalRamp": [
+          "#101213",
+          "#20272c",
+          "#343e46",
+          "#4c5a64",
+          "#687985",
+          "#8496a3",
+          "#a4b4bf",
+          "#c5d0d8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Barlow Condensed",
+        "purpose": "Responsive page heading."
+      },
+      "title": {
+        "displayName": "Barlow Condensed",
+        "purpose": "Section headings."
+      },
+      "body": {
+        "displayName": "Barlow",
+        "purpose": "Body copy, instructions, and controls."
+      },
+      "label": {
+        "displayName": "Barlow",
+        "purpose": "Field labels and legends."
+      }
+    },
+    "shadows": [
+      {
+        "name": "update-notice",
+        "value": "0 8px 32px #020b1480",
+        "purpose": "Elevates the fixed update notice above page content."
+      }
+    ],
+    "motion": [
+      {
+        "name": "choice-transition",
+        "value": "140ms ease-out",
+        "purpose": "Color transitions for radio-choice surfaces and outlines."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Disables animations, transitions, and smooth scrolling when requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "900px"
+      },
+      {
+        "name": "mobile",
+        "value": "680px"
+      },
+      {
+        "name": "narrow",
+        "value": "360px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Update button",
+      "kind": "button",
+      "refersTo": "button-update",
+      "description": "Action in the fixed notice to install a new version.",
+      "html": "<button type=\"button\" class=\"ds-update\">Update <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 12h15m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-update { display: flex; min-height: 44px; align-items: center; gap: 9px; padding: 10px 14px; border: 0; border-radius: 5px; background: #091724; color: #edf4fa; font: 600 14px 'Barlow', sans-serif; cursor: pointer; } .ds-update svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; } .ds-update:hover { color: #65e3ef; } .ds-update:focus-visible { outline: 3px solid #65e3ef; outline-offset: 3px; }"
+    },
+    {
+      "name": "Racer Shards inventory",
+      "kind": "input",
+      "refersTo": "balance-field",
+      "description": "Numeric inventory field with shard icon and labeled unit.",
+      "html": "<label class=\"ds-balance\"><svg class=\"ds-shard\" viewBox=\"0 0 32 40\" aria-hidden=\"true\"><path d=\"m18 2 11 11-10 25L3 26Z\" fill=\"currentColor\"/><path d=\"m18 2-4 21L3 26m11-3 15-10M14 23l5 15\" fill=\"none\" stroke=\"#091724\" stroke-width=\"1.6\"/></svg><input aria-label=\"Racer Shards in inventory\" value=\"125\"><span class=\"ds-unit\">Racer Shards</span></label>",
+      "css": ".ds-balance { display: flex; align-items: center; gap: 12px; min-height: 52px; padding-inline: 15px; border: 1px solid #30485c; border-radius: 6px; background: #091724; } .ds-shard { width: 18px; height: 24px; flex-shrink: 0; color: #65e3ef; } .ds-balance input { width: 100%; min-width: 0; padding-block: 12px; border: 0; outline: 0; background: transparent; color: #edf4fa; font: 400 19px 'Barlow', sans-serif; font-variant-numeric: tabular-nums; caret-color: #65e3ef; } .ds-unit { color: #abc0d1; font: 400 13px 'Barlow', sans-serif; white-space: nowrap; } .ds-balance:focus-within { outline: 3px solid #65e3ef; outline-offset: 3px; } .ds-balance:has(input[aria-invalid='true']) { border-color: #ffb6b6; }"
+    },
+    {
+      "name": "Upgrade summary",
+      "kind": "custom",
+      "refersTo": "result-panel",
+      "description": "Prominent remaining-shard count with an authored faceted shard icon.",
+      "html": "<div class=\"ds-result\"><span class=\"ds-result-label\">Racer Shards still needed</span><div class=\"ds-result-value\"><svg viewBox=\"0 0 32 40\" aria-hidden=\"true\"><path d=\"m18 2 11 11-10 25L3 26Z\" fill=\"currentColor\"/><path d=\"m18 2-4 21L3 26m11-3 15-10M14 23l5 15\" fill=\"none\" stroke=\"#091724\" stroke-width=\"1.6\"/></svg><strong>125</strong></div><p>Racer Shards to reach your target</p></div>",
+      "css": ".ds-result { color: #edf4fa; font-family: 'Barlow', sans-serif; } .ds-result-label { color: #abc0d1; font-size: 15px; } .ds-result-value { display: flex; align-items: center; gap: 16px; color: #ffda6a; } .ds-result-value > svg { width: 36px; height: 46px; transform: rotate(8deg); flex-shrink: 0; } .ds-result-value strong { font: 600 96px/1.08 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; } .ds-result p { margin-top: 2px; font-size: 18px; } .ds-result.is-complete .ds-result-value { color: #65e3ef; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Racing crew upgrade console",
+    "overview": "A compact dashboard for a game decision: choose Stars, Star Fragments, and inventory, then see the Racer Shards still needed. Deep navy supports focused reading; cyan marks selection and interaction, while yellow marks Stars and outstanding shards. Barlow Condensed sets the pace for headings and the large result; Barlow keeps controls and supporting text clear.\\n\\nSmall geometric details, a faceted shard, and a checkered finish marker carry the racing reference. The calculator leads the page, with the explanation beneath.",
+    "keyCharacteristics": [
+      "Dark blue surfaces differentiated by tone and fine outlines.",
+      "Cyan for selection and focus; yellow for Stars and outstanding shards.",
+      "Discreet racing motifs made from geometry and local SVGs."
+    ],
+    "rules": [
+      {
+        "name": "The Two-Accent Rule",
+        "body": "Cyan marks selection and interaction. Yellow marks Stars and Racer Shards still needed.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do reserve cyan for selection, focus, and interaction and yellow for Stars and outstanding shards.",
+      "Do use Barlow Condensed for display numbers and Barlow for controls and body copy.",
+      "Do keep native controls and a visible keyboard focus ring.",
+      "Do stack the form and result below 680px.",
+      "Do use discreet track geometry and local SVG icons."
+    ],
+    "donts": [
+      "Don't use yellow for selection or cyan in place of the remaining-shards highlight.",
+      "Don't rely on color alone for focus, selection, errors, or disabled states.",
+      "Don't add shadows to the main panels; hierarchy comes from blue surfaces and fine outlines."
+    ]
+  }
+}
