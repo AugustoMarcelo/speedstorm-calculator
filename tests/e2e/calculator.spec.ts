@@ -69,6 +69,10 @@ test('keyboard access, accessible names, focus, and reduced motion', async ({ pa
   await expect(page.locator('input[name="currentStars"][value="1"] + span')).toHaveCSS('outline-style', 'solid');
   await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
   await expect(page.locator('#balance')).toHaveAccessibleName('Racer Shards in inventory');
+  await expect(page.getByRole('link', { name: 'AugustoMarcelo on GitHub (opens in a new tab)' }))
+    .toHaveAttribute('href', 'https://github.com/AugustoMarcelo');
+  await expect(page.getByRole('link', { name: 'AugustoMarcelo on GitHub (opens in a new tab)' }))
+    .toHaveAttribute('target', '_blank');
   await expect(page.locator('#result-announcement')).toHaveAttribute('aria-live', 'polite');
   await page.getByText('See Racer Shard costs').click();
   await expect(page.getByRole('table')).toBeVisible();
