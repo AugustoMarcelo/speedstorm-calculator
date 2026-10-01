@@ -15,7 +15,6 @@ for (const { size, data } of faviconImages) {
   await writeFile(new URL(`../public/favicon-${size}x${size}.png`, import.meta.url), data);
 }
 const icoHeader = Buffer.alloc(6);
-icoHeader.writeUInt16LE(0, 2);
 icoHeader.writeUInt16LE(1, 2);
 icoHeader.writeUInt16LE(faviconImages.length, 4);
 let offset = icoHeader.length + faviconImages.length * 16;

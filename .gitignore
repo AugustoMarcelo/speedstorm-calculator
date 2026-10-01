@@ -3,7 +3,6 @@ dist/
 test-results/
 playwright-report/
 .test-build/
-.agents/skills/impeccable/scripts/bin/
 .agents/skills/
 .impeccable/config.local.json
 .impeccable/review/
