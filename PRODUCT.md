@@ -24,11 +24,11 @@ Used on mobile and desktop, including offline after the first complete load. Pre
 
 ## Capabilities and Constraints
 
-- Current Stars: 0–6. Star Fragments unlocked toward the next Star: 0–4. Target: 1–6.
+- Current and target Stars: 0–6, each with 0–4 Star Fragments toward the next Star. At six Stars, fragments must be zero. Changing either Star selection resets its fragments.
 - Each Star takes five Star Fragments. Season 22 costs per Star: 15, 25, 35, 45, 65, and 75 Racer Shards; 1,500, 2,500, 3,500, 4,500, 6,500, and 7,500 Tune Coins.
 - Star Fragments describe progression already unlocked on the Racer. Racer Shards and Tune Coins describe inventory available to spend.
 - Subtract current Star Fragment progress first, then subtract Racer Shards and Tune Coins in inventory independently. Neither result goes below zero.
-- Defaults: 0 Stars, 0 Star Fragments, target 1 Star, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum.
+- Defaults: 0 Stars, 0 Star Fragments, target 1 Star with 0 target Star Fragments, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum. Targets at or below current progress cost zero.
 - Accept whole numbers within the valid ranges. Empty inventory fields mean zero. Show errors beside each field.
 - No Racer catalogue, earlier rules, public API, or login.
 - Ask before applying an update; preserve each tab's fields across the reload.

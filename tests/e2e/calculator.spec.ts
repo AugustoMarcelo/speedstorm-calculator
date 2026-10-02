@@ -60,6 +60,68 @@ test('previous targets cost zero and changing stars resets progress', async ({ p
   await expect(page.locator('input[name="completedSteps"][value="0"]')).toBeChecked();
 });
 
+test('partial targets calculate costs and distinguish reached progress from available inventory', async ({ page }) => {
+  await page.goto('./');
+  const targetGroup = page.getByRole('group', { name: 'Target Star Fragments', exact: true });
+  await expect(targetGroup).toBeVisible();
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 1);
+  await choose(page, 'targetStars', 2);
+  await targetGroup.getByRole('radio', { name: '3 of 5 Star Fragments unlocked', exact: true }).check();
+  await expect(page.locator('#missing')).toHaveText('14');
+  await expect(page.locator('#tune-coins-total')).toHaveText('1,400');
+  await expect(page.locator('#result-target')).toContainText('2 stars + 3/5 Star Fragments toward the 3rd star');
+  await expect(page.locator('#route-caption')).toContainText('2 stars + 3/5 Star Fragments');
+  await expect(page.locator('#result-announcement')).toContainText('2 stars + 3/5 Star Fragments');
+  await expect(page.locator('#breakdown-list')).toContainText('2 Star Fragments');
+  await expect(page.locator('#empty-breakdown')).toBeHidden();
+  await page.getByLabel('Racer Shards in inventory').fill('20');
+  await page.getByLabel('Tune Coins in inventory').fill('2000');
+  await expect(page.locator('#result-label')).toHaveText('Ready to upgrade');
+  await choose(page, 'completedSteps', 3);
+  await expect(page.locator('#result-label')).toHaveText('Target already reached');
+  await expect(page.locator('#breakdown-list li')).toHaveCount(0);
+  await expect(page.locator('#empty-breakdown')).toBeVisible();
+  await choose(page, 'completedSteps', 4);
+  await expect(page.locator('#total')).toHaveText('0');
+});
+
+test('target fragments support keyboard input, star changes, the maximum, and reset', async ({ page }) => {
+  await page.goto('./');
+  await choose(page, 'targetStars', 0);
+  await expect(page.locator('#result-label')).toHaveText('Target already reached');
+  await expect(page.locator('#empty-breakdown')).toHaveText('You’ve already reached this target.');
+  await page.locator('input[name="targetSteps"][value="0"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('input[name="targetSteps"][value="1"]')).toBeChecked();
+  await expect(page.locator('input[name="targetSteps"][value="1"] + span')).toHaveCSS('outline-style', 'solid');
+  await expect(page.locator('#missing')).toHaveText('3');
+  await expect(page.locator('#tune-coins-total')).toHaveText('300');
+  await choose(page, 'targetStars', 2);
+  await expect(page.locator('input[name="targetSteps"][value="0"]')).toBeChecked();
+  await choose(page, 'targetSteps', 4);
+  await choose(page, 'targetStars', 6);
+  await expect(page.locator('input[name="targetSteps"][value="0"]')).toBeChecked();
+  for (const control of await page.locator('#target-steps-fieldset input').all()) await expect(control).toBeDisabled();
+  await expect(page.locator('#missing')).toHaveText('260');
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await expect(page.locator('input[name="targetStars"][value="1"]')).toBeChecked();
+  await expect(page.locator('input[name="targetSteps"][value="0"]')).toBeChecked();
+  for (const control of await page.locator('#target-steps-fieldset input').all()) await expect(control).toBeEnabled();
+  await expect(page.locator('#missing')).toHaveText('15');
+});
+
+test('restores update snapshots from before target fragments were added', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('speedstorm:update-fields', JSON.stringify({
+    currentStars: 2, completedSteps: 3, targetStars: 3, balance: '5', tuneCoinBalance: '500',
+  })));
+  await page.goto('./');
+  await expect(page.locator('input[name="targetStars"][value="3"]')).toBeChecked();
+  await expect(page.locator('input[name="targetSteps"][value="0"]')).toBeChecked();
+  await expect(page.locator('#missing')).toHaveText('9');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('900');
+});
+
 test('keyboard access, accessible names, focus, and reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('./');
@@ -115,6 +177,8 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   await page.goto('./');
   await readyOffline(page);
   await page.evaluate(() => document.fonts.ready);
+  await choose(page, 'targetStars', 2);
+  await choose(page, 'targetSteps', 3);
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -166,6 +230,7 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await choose(page, 'currentStars', 2);
   await choose(page, 'completedSteps', 3);
   await choose(page, 'targetStars', 3);
+  await choose(page, 'targetSteps', 2);
   await page.getByLabel('Racer Shards in inventory').fill('5');
   await page.getByLabel('Tune Coins in inventory').fill('750');
   await page.evaluate(() => caches.open('another-app'));
@@ -181,7 +246,9 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await expect(page.locator('meta[name="test-release"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
-  await expect(page.locator('#missing')).toHaveText('9');
+  await expect(page.locator('#missing')).toHaveText('27');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('2,450');
+  await expect(page.locator('input[name="targetSteps"][value="2"]')).toBeChecked();
   await expect(page.locator('#balance')).toHaveValue('5');
   await expect(page.locator('#tune-coin-balance')).toHaveValue('750');
   await expect(page.locator('input[name="completedSteps"][value="3"]')).toBeChecked();

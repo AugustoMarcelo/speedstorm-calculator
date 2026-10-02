@@ -12,6 +12,7 @@ const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
 const tuneCoinBalance = document.querySelector<HTMLInputElement>('#tune-coin-balance')!;
 const stepsFieldset = document.querySelector<HTMLFieldSetElement>('#steps-fieldset')!;
+const targetStepsFieldset = document.querySelector<HTMLFieldSetElement>('#target-steps-fieldset')!;
 const panel = document.querySelector<HTMLElement>('.result-panel')!;
 const format = new Intl.NumberFormat('en-US');
 const starIcon = '<svg aria-hidden="true"><use href="#icon-star"/></svg>';
@@ -31,7 +32,8 @@ function renderChoices(id: string, name: string, first: number, last: number, se
 
 renderChoices('current-stars', 'currentStars', 0, MAX_STARS, 0, true);
 renderChoices('completed-steps', 'completedSteps', 0, PROGRESSION.stepsPerStar - 1, 0);
-renderChoices('target-stars', 'targetStars', 1, MAX_STARS, 1, true);
+renderChoices('target-stars', 'targetStars', 0, MAX_STARS, 1, true);
+renderChoices('target-steps', 'targetSteps', 0, PROGRESSION.stepsPerStar - 1, 0);
 
 function selected(name: string): number {
   return Number(form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)!.value);
@@ -46,6 +48,7 @@ function snapshot() {
     currentStars: selected('currentStars'),
     completedSteps: selected('completedSteps'),
     targetStars: selected('targetStars'),
+    targetSteps: selected('targetSteps'),
     balance: balance.value,
     tuneCoinBalance: tuneCoinBalance.value,
   };
@@ -63,6 +66,7 @@ function restore() {
     select('currentStars', state.currentStars);
     select('completedSteps', state.completedSteps);
     select('targetStars', state.targetStars);
+    select('targetSteps', state.targetSteps ?? 0);
     balance.value = state.balance;
     tuneCoinBalance.value = typeof state.tuneCoinBalance === 'string' ? state.tuneCoinBalance : '0';
   } catch {
@@ -80,16 +84,23 @@ function update() {
   const currentStars = selected('currentStars');
   const completedSteps = selected('completedSteps');
   const targetStars = selected('targetStars');
+  const targetSteps = selected('targetSteps');
+  const targetDescription = describeProgress(targetStars, targetSteps);
   const parsedBalance = parseBalance(balance.value);
   const parsedTuneCoinBalance = parseBalance(tuneCoinBalance.value);
   const invalidShards = parsedBalance === null;
   const invalidTuneCoins = parsedTuneCoinBalance === null;
   const maxed = currentStars === MAX_STARS;
   stepsFieldset.disabled = maxed;
+  targetStepsFieldset.disabled = targetStars === MAX_STARS;
+  text('target-step-note', targetStars === MAX_STARS
+    ? 'Maximum target: all 6 stars unlocked.'
+    : `Stop at ${targetDescription}.`);
   text('step-note', maxed
     ? 'Maximum upgrade reached: all 6 stars unlocked.'
     : `${completedSteps} of 5 Star Fragments unlocked toward your ${ordinal(currentStars + 1)} star.`);
-  document.querySelector('#result-target span')!.textContent = `${ordinal(targetStars)} Star`;
+  document.querySelector('#result-target span')!.textContent = targetSteps === 0 && targetStars > 0
+    ? `${ordinal(targetStars)} Star` : targetDescription;
   document.getElementById('balance-error')!.hidden = !invalidShards;
   document.getElementById('tune-coin-error')!.hidden = !invalidTuneCoins;
   balance.setAttribute('aria-invalid', String(invalidShards));
@@ -99,11 +110,12 @@ function update() {
     currentStars,
     completedSteps,
     targetStars,
+    targetSteps,
     balance: parsedBalance ?? 0,
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
   const result = calculate(input);
-  const reached = targetStars <= currentStars;
+  const reached = targetStars * PROGRESSION.stepsPerStar + targetSteps <= currentStars * PROGRESSION.stepsPerStar + completedSteps;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
   text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
@@ -113,7 +125,7 @@ function update() {
     : invalidShards ? 'Racer Shards must be a whole number with no signs or separators.'
       : invalidTuneCoins ? 'Tune Coins must be a whole number with no signs or separators.'
         : maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
-    : reached ? 'Your Racer has already unlocked this star. Choose another target.'
+    : reached ? 'Your Racer has already reached this target. Choose another target.'
       : ready ? 'You have enough Racer Shards and Tune Coins.'
         : result.missing === 0 ? `Racer Shards ready. You still need ${format.format(result.tuneCoinsMissing)} Tune Coins.`
           : result.tuneCoinsMissing === 0 ? `Tune Coins ready. You still need ${format.format(result.missing)} Racer Shards.`
@@ -128,8 +140,14 @@ function update() {
   document.getElementById('breakdown-list')!.innerHTML = result.breakdown.map(item =>
     `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span>${format.format(item.cost)} <small>Racer Shards</small></span><span>${format.format(item.tuneCoinCost)} <small>Tune Coins</small></span></div></li>`).join('');
   document.getElementById('empty-breakdown')!.hidden = !reached;
-  text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked' : currentStars === 0 ? `From the starting line to the ${ordinal(targetStars)} star` : `From ${currentStars} stars to ${targetStars} stars`);
-  announce(invalidShards || invalidTuneCoins ? message : ready ? message : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetStars} stars.`);
+  text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked'
+    : `From ${currentStars === 0 && completedSteps === 0 ? 'the starting line' : describeProgress(currentStars, completedSteps)} to ${targetDescription}`);
+  announce(invalidShards || invalidTuneCoins ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`);
+}
+
+function describeProgress(stars: number, steps: number): string {
+  const fullStars = `${stars} ${stars === 1 ? 'star' : 'stars'}`;
+  return steps === 0 ? fullStars : `${fullStars} + ${steps}/${PROGRESSION.stepsPerStar} Star Fragments toward the ${ordinal(stars + 1)} star`;
 }
 
 function ordinal(value: number): string {
@@ -140,6 +158,9 @@ function ordinal(value: number): string {
 form.addEventListener('input', event => {
   if (event.target instanceof HTMLInputElement && event.target.name === 'currentStars') {
     select('completedSteps', 0);
+  }
+  if (event.target instanceof HTMLInputElement && event.target.name === 'targetStars') {
+    select('targetSteps', 0);
   }
   update();
 });

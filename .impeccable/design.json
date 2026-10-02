@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-01T16:05:06Z",
+  "generatedAt": "2026-10-02T13:31:38Z",
   "title": "Design System: Disney Speedstorm Racer Shard Calculator",
   "extensions": {
     "colorMeta": {
@@ -273,9 +273,16 @@
       "name": "Upgrade summary",
       "kind": "custom",
       "refersTo": "result-panel",
-      "description": "Prominent Racer Shards still-needed count with a parallel Tune Coin balance summary and dual-currency Star breakdown.",
+      "description": "Prominent Racer Shards still-needed count with a parallel Tune Coin balance summary and dual-currency Star breakdown. Partial targets include the full Stars and Star Fragments, with wrapping text on narrow screens.",
       "html": "<div class=\"ds-result\"><span class=\"ds-result-label\">Racer Shards still needed</span><div class=\"ds-result-value\"><svg viewBox=\"0 0 32 40\" aria-hidden=\"true\"><path d=\"m18 2 11 11-10 25L3 26Z\" fill=\"currentColor\"/><path d=\"m18 2-4 21L3 26m11-3 15-10M14 23l5 15\" fill=\"none\" stroke=\"#091724\" stroke-width=\"1.6\"/></svg><strong>125</strong></div><p>Racer Shards to reach your target</p></div>",
       "css": ".ds-result { color: #edf4fa; font-family: 'Barlow', sans-serif; } .ds-result-label { color: #abc0d1; font-size: 15px; } .ds-result-value { display: flex; align-items: center; gap: 16px; color: #ffda6a; } .ds-result-value > svg { width: 36px; height: 46px; transform: rotate(8deg); flex-shrink: 0; } .ds-result-value strong { font: 600 96px/1.08 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; } .ds-result p { margin-top: 2px; font-size: 18px; } .ds-result.is-complete .ds-result-value { color: #65e3ef; }"
+    },
+    {
+      "name": "Target Star Fragments",
+      "kind": "custom",
+      "description": "Native radio choices for 0–4 target fragments toward the next Star, matching current-progress controls. Changing target Stars resets fragments; six Stars disables them.",
+      "html": "<fieldset class=\"ds-fragments\"><legend>Target Star Fragments</legend><div class=\"ds-choices\"><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"0\" aria-label=\"0 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">0</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"1\" aria-label=\"1 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">1</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"2\" aria-label=\"2 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">2</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"3\" aria-label=\"3 of 5 Star Fragments unlocked\" checked><span aria-hidden=\"true\">3</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"4\" aria-label=\"4 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">4</span></label></div><p>Stop at 2 stars + 3/5 Star Fragments toward the 3rd star.</p></fieldset>",
+      "css": ".ds-fragments { border: 0; margin: 0; padding: 0; min-width: 0; color: #edf4fa; font-family: \"Barlow\", sans-serif; } .ds-fragments legend { padding: 0; font-size: 15px; font-weight: 600; } .ds-choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-top: 12px; } .ds-choice { position: relative; min-width: 0; cursor: pointer; } .ds-choice input { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; } .ds-choice span { display: flex; align-items: center; justify-content: center; min-height: 47px; border: 1px solid #30485c; border-radius: 6px; background: #091724; font-weight: 600; font-size: 17px; transition: background-color 140ms ease-out, border-color 140ms ease-out; } .ds-choice input:checked + span { background: #173d4b; border-color: #65e3ef; color: #65e3ef; } .ds-choice input:hover:not(:disabled) + span { border-color: #65e3ef; } .ds-choice input:focus-visible + span { outline: 3px solid #65e3ef; outline-offset: 3px; } .ds-choice input:disabled { cursor: not-allowed; } .ds-choice input:disabled + span { color: #93a6b5; background: #172735; border-color: #3a4a59; } .ds-fragments p { color: #abc0d1; margin-top: 9px; font-size: 12px; line-height: 1.5; } @media (prefers-reduced-motion: reduce) { .ds-choice span { transition: none; } }"
     }
   ],
   "narrative": {

@@ -58,6 +58,12 @@
               <legend>Target star</legend>
               <div class="choices star-choices" id="target-stars"></div>
             </fieldset>
+            <fieldset class="field-group" id="target-steps-fieldset">
+              <legend>Target Star Fragments</legend>
+              <p class="field-hint" id="target-steps-hint">Progress toward the star after your target. Choose 0 to stop at a full star.</p>
+              <div class="steps-line"><div class="choices step-choices" id="target-steps" role="group" aria-describedby="target-steps-hint"></div><span class="steps-total" aria-hidden="true">/ 5 Star Fragments</span></div>
+              <p class="field-note" id="target-step-note">Stop at 1 star.</p>
+            </fieldset>
             <div class="field-group balances-group">
               <div class="balance-entry">
                 <label for="balance">Racer Shards in inventory</label>
@@ -90,7 +96,7 @@
               <div><dt>Inventory Tune Coins used</dt><dd id="tune-coins-applied">− 0</dd></div>
               <div class="remaining-row"><dt>Tune Coins still needed</dt><dd id="tune-coins-remaining">1,500</dd></div>
             </dl>
-            <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already unlocked this star.</p></div>
+            <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already reached this target.</p></div>
             <div class="result-bottom"><span class="checkered-flag" aria-hidden="true"></span><span id="route-caption">From the starting line to the 1st star</span></div>
           </section>
         </div>

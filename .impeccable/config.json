@@ -1,1 +1,27 @@
-{ "buildPath": "code" }
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-02T13:30:52.905Z",
+        "reason": "Codex verified false positive: src/style.css defines the page heading at 36–54px (40px mobile), section headings at 24–32px, and body text at 13–17px; desktop and mobile screenshots confirm the documented hierarchy."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(0, 0, 0)",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-02T13:31:54.341Z",
+        "reason": "Codex verified false positive: src/style.css sets .skip-link color to var(--bg), defined as #091724 in the documented palette; the static HTML scan reports black instead of the externally styled value."
+      }
+    ]
+  }
+}
