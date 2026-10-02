@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target, and 0 Racer Shards and Tune Coins in inventory. Changing the current star resets Star Fragment progress, since that progress applies to the next star.
+Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target with 0 target Star Fragments, and 0 Racer Shards and Tune Coins in inventory. Choose 0–6 full stars and 0–4 Star Fragments for both current progress and your target. Changing either star selection resets its fragments; at 6 stars, fragments are disabled.
 
 ```sh
 npm run build
@@ -38,6 +38,8 @@ Source: [Racer Progression Update](https://disneyspeedstorm.com/news/disney-spee
 The calculator adds the remaining Star Fragments needed to reach the target, subtracts the Star Fragments already unlocked toward the next Star, then calculates each currency shortage independently: `missingShards = Math.max(0, shardCost - shardBalance)` and `missingTuneCoins = Math.max(0, tuneCoinCost - tuneCoinBalance)`. A previously reached target costs zero.
 
 Examples: 0 → 6 Stars costs 260 Racer Shards and 26,000 Tune Coins; 4 → 6 costs 140 Racer Shards and 14,000 Tune Coins. From 2 Stars with 3 of 5 Star Fragments unlocked, reaching 3 Stars costs 14 Racer Shards and 1,400 Tune Coins; with 5 Shards and 500 Tune Coins in inventory, 9 Shards and 900 Tune Coins are still needed.
+
+For a partial target, select the full stars and then the fragments toward the next star. From 2 Stars + 1 fragment to 2 Stars + 3 fragments costs 14 Racer Shards and 1,400 Tune Coins. Each fragment represents 0.2 stars, so targets follow whole-fragment upgrades rather than half-star estimates. Targets below 1 Star are supported, including a zero-progress target that costs nothing.
 
 Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. Empty inventory fields mean zero.
 

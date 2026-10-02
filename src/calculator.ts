@@ -4,6 +4,7 @@ export interface CalculatorInput {
   currentStars: number;
   completedSteps: number;
   targetStars: number;
+  targetSteps?: number;
   balance: number;
   tuneCoinBalance: number;
 }
@@ -28,22 +29,29 @@ export interface Calculation {
 }
 
 export function calculate(input: CalculatorInput): Calculation {
-  const { currentStars, completedSteps, targetStars, balance, tuneCoinBalance } = input;
+  const { currentStars, completedSteps, targetStars, targetSteps = 0, balance, tuneCoinBalance } = input;
   const validInteger = (value: number, min: number, max: number) =>
     Number.isSafeInteger(value) && value >= min && value <= max;
 
   if (!validInteger(currentStars, 0, MAX_STARS)
-    || !validInteger(targetStars, 1, MAX_STARS)
+    || !validInteger(targetStars, 0, MAX_STARS)
+    || !validInteger(targetSteps, 0, PROGRESSION.stepsPerStar - 1)
     || !validInteger(completedSteps, 0, PROGRESSION.stepsPerStar - 1)
     || !validInteger(balance, 0, Number.MAX_SAFE_INTEGER)
     || !validInteger(tuneCoinBalance, 0, Number.MAX_SAFE_INTEGER)
-    || (currentStars === MAX_STARS && completedSteps !== 0)) {
+    || (currentStars === MAX_STARS && completedSteps !== 0)
+    || (targetStars === MAX_STARS && targetSteps !== 0)) {
     throw new RangeError('Stars, Star Fragments, Racer Shards, and Tune Coins must be whole numbers within their limits.');
   }
 
   const breakdown: StarCost[] = [];
-  for (let star = currentStars + 1; star <= targetStars; star += 1) {
-    const steps = PROGRESSION.stepsPerStar - (star === currentStars + 1 ? completedSteps : 0);
+  const currentProgress = currentStars * PROGRESSION.stepsPerStar + completedSteps;
+  const targetProgress = targetStars * PROGRESSION.stepsPerStar + targetSteps;
+  for (let star = currentStars + 1; star <= Math.ceil(targetProgress / PROGRESSION.stepsPerStar); star += 1) {
+    const start = Math.max(currentProgress, (star - 1) * PROGRESSION.stepsPerStar);
+    const end = Math.min(targetProgress, star * PROGRESSION.stepsPerStar);
+    const steps = end - start;
+    if (steps <= 0) continue;
     const costPerStep = PROGRESSION.starCosts[star - 1] / PROGRESSION.stepsPerStar;
     const tuneCoinsPerStep = PROGRESSION.tuneCoinCosts[star - 1] / PROGRESSION.stepsPerStar;
     breakdown.push({ star, steps, costPerStep, cost: steps * costPerStep, tuneCoinsPerStep, tuneCoinCost: steps * tuneCoinsPerStep });

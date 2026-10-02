@@ -88,10 +88,10 @@ h2 { font: 600 25px/1.15 var(--display); }
 .balance-input > span { color: var(--muted); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 .field-error { color: var(--error); font-size: 13px; line-height: 1.5; margin-top: 8px; }
 .result-panel { background: var(--result); padding: 31px 34px 23px; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--line); }
-.result-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.result-topline { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
 .result-topline h2 { font: 500 14px/1.4 'Barlow', sans-serif; color: var(--muted); }
-.result-target { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-.result-target svg { fill: var(--yellow); width: 16px; height: 16px; }
+.result-target { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.result-target svg { fill: var(--yellow); width: 16px; height: 16px; flex-shrink: 0; }
 .result-number-area { padding-top: 29px; }
 .result-label { font-size: 15px; color: var(--muted); }
 .result-value { display: flex; align-items: center; gap: 16px; color: var(--yellow); }
@@ -119,7 +119,7 @@ h2 { font: 600 25px/1.15 var(--display); }
 .breakdown-cost small { color: var(--muted); font-size: inherit; font-weight: 400; }
 #empty-breakdown { color: var(--muted); font-size: 14px; margin-top: 12px; line-height: 1.5; }
 .result-bottom { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; margin-top: auto; padding-top: 17px; border-top: 1px solid var(--line); }
-.checkered-flag { width: 18px; height: 14px; background: conic-gradient(var(--muted) 25%, transparent 0 50%, var(--muted) 0 75%, transparent 0) 0 0/8px 8px; transform: skewY(-8deg); }
+.checkered-flag { width: 18px; height: 14px; flex-shrink: 0; background: conic-gradient(var(--muted) 25%, transparent 0 50%, var(--muted) 0 75%, transparent 0) 0 0/8px 8px; transform: skewY(-8deg); }
 .result-panel.is-complete .result-value { color: var(--cyan); }
 .explanation { display: grid; grid-template-columns: 1fr 1.5fr; gap: 70px; padding-block: 43px; }
 .explanation-intro h2 { font: 600 32px/1.1 var(--display); }

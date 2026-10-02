@@ -45,9 +45,40 @@ describe('Season 22 progression', () => {
     });
   });
 
+  it('prices only the fragments between current and target progress', () => {
+    expect(calculate({ ...input, currentStars: 2, completedSteps: 1, targetStars: 2, targetSteps: 3, balance: 5, tuneCoinBalance: 500 })).toEqual({
+      total: 14, missing: 9, appliedBalance: 5, tuneCoinTotal: 1400, tuneCoinsMissing: 900, appliedTuneCoinBalance: 500,
+      breakdown: [{ star: 3, steps: 2, costPerStep: 7, cost: 14, tuneCoinsPerStep: 700, tuneCoinCost: 1400 }],
+    });
+  });
+
+  it('groups a partial target across star boundaries by each upgrade rate', () => {
+    expect(calculate({ ...input, currentStars: 2, completedSteps: 3, targetStars: 4, targetSteps: 2 })).toMatchObject({
+      total: 85, tuneCoinTotal: 8500,
+      breakdown: [
+        { star: 3, steps: 2, cost: 14, tuneCoinCost: 1400 },
+        { star: 4, steps: 5, cost: 45, tuneCoinCost: 4500 },
+        { star: 5, steps: 2, cost: 26, tuneCoinCost: 2600 },
+      ],
+    });
+  });
+
+  it('supports targets below one star', () => {
+    expect(calculate({ ...input, targetStars: 0, targetSteps: 2 })).toMatchObject({ total: 6, tuneCoinTotal: 600 });
+    expect(calculate({ ...input, targetStars: 0 })).toMatchObject({ total: 0, tuneCoinTotal: 0, breakdown: [] });
+  });
+
+  it.each([2, 3, 4])('charges nothing when %i current fragments meet or exceed the target', completedSteps => {
+    expect(calculate({ ...input, currentStars: 2, completedSteps, targetStars: 2, targetSteps: 2 })).toMatchObject({
+      total: 0, missing: 0, tuneCoinTotal: 0, tuneCoinsMissing: 0, breakdown: [],
+    });
+  });
+
   it.each([
     { currentStars: -1 }, { currentStars: 7 }, { currentStars: 1.5 },
-    { targetStars: 0 }, { targetStars: 7 }, { targetStars: 2.5 },
+    { targetStars: -1 }, { targetStars: 7 }, { targetStars: 2.5 },
+    { targetSteps: -1 }, { targetSteps: 5 }, { targetSteps: 1.5 },
+    { targetSteps: NaN }, { targetSteps: Infinity }, { targetStars: 6, targetSteps: 1 },
     { completedSteps: -1 }, { completedSteps: 5 }, { completedSteps: 1.5 },
     { balance: -1 }, { balance: 0.5 }, { balance: NaN }, { balance: Infinity },
     { tuneCoinBalance: -1 }, { tuneCoinBalance: 0.5 }, { tuneCoinBalance: Number.MAX_SAFE_INTEGER + 1 },
