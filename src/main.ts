@@ -171,7 +171,7 @@ document.querySelectorAll('[data-season]').forEach(element => { element.textCont
 document.querySelector<HTMLAnchorElement>('#source-link')!.href = PROGRESSION.source;
 text('rule-date', `Rules effective ${new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(PROGRESSION.effectiveAt))}`);
 document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.map((cost, index) =>
-  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost / PROGRESSION.stepsPerStar}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index] / PROGRESSION.stepsPerStar)}</td></tr>`).join('');
+  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index])}</td></tr>`).join('');
 
 restore();
 update();
