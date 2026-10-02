@@ -147,7 +147,7 @@ The form and summary sit in one rounded outlined container. A divider separates 
 
 ### Expandable progression table
 
-A native disclosure reveals Season 22 costs per Star Fragment in both currencies. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
+A native disclosure reveals Season 22 totals per full Star in both currencies. Each row covers all five Star Fragments for that Star upgrade. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
 
 ### Update notice and links
 

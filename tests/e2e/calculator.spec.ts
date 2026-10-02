@@ -122,6 +122,32 @@ test('restores update snapshots from before target fragments were added', async 
   await expect(page.locator('#tune-coins-remaining')).toHaveText('900');
 });
 
+test('upgrade table shows full-star totals instead of fragment costs', async ({ page }) => {
+  await page.goto('./');
+  await page.getByText('See upgrade costs').click();
+  const table = page.getByRole('table');
+  const rows = table.locator('tbody tr');
+  const expectedRows = [
+    ['0 → 1', '15', '1,500'],
+    ['1 → 2', '25', '2,500'],
+    ['2 → 3', '35', '3,500'],
+    ['3 → 4', '45', '4,500'],
+    ['4 → 5', '65', '6,500'],
+    ['5 → 6', '75', '7,500'],
+  ];
+  await expect(rows).toHaveCount(expectedRows.length);
+  for (const [index, expected] of expectedRows.entries()) {
+    await expect(rows.nth(index).locator('th, td')).toHaveText(expected);
+  }
+  await expect(table).toHaveAccessibleName('Season 22 costs per full Star');
+  await expect(table.getByRole('columnheader')).toHaveText(['Star upgrade', 'Total Racer Shards', 'Total Tune Coins']);
+  await expect(page.locator('#missing')).toHaveText('15');
+  await choose(page, 'targetStars', 0);
+  await choose(page, 'targetSteps', 1);
+  await expect(page.locator('#missing')).toHaveText('3');
+  await expect(page.locator('#tune-coins-total')).toHaveText('300');
+});
+
 test('keyboard access, accessible names, focus, and reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('./');
@@ -179,6 +205,7 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
   await choose(page, 'targetStars', 2);
   await choose(page, 'targetSteps', 3);
+  await page.getByText('See upgrade costs').click();
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -188,7 +215,6 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   }
   await choose(page, 'targetStars', 6);
   await page.getByLabel('Racer Shards in inventory').fill('9007199254740991');
-  await page.getByText('See upgrade costs').click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
