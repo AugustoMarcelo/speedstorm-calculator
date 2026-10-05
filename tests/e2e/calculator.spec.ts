@@ -227,6 +227,17 @@ test('subdirectory build, icons, manifest, and offline reload use local assets',
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('./');
   await readyOffline(page);
+  const currencyIcons = page.locator('.balance-input > img, .result-shard');
+  await expect(currencyIcons).toHaveCount(3);
+  for (const icon of await currencyIcons.all()) {
+    await expect(icon).toHaveAttribute('alt', '');
+    const src = await icon.getAttribute('src');
+    const url = new URL(src!, page.url());
+    expect(url.pathname).toMatch(/^\/speedstorm-calculator\/icons\/(racer-shard|tune-coin)\.png$/);
+    const response = await request.get(url.href);
+    expect(response.ok()).toBe(true);
+    expect(response.headers()['content-type']).toBe('image/png');
+  }
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
   const manifestUrl = new URL(manifestHref!, page.url());
   expect(manifestUrl.pathname).toBe('/speedstorm-calculator/manifest.webmanifest');
@@ -246,6 +257,12 @@ test('subdirectory build, icons, manifest, and offline reload use local assets',
   expect(faviconIco.readUInt16LE(4)).toBe(2);
   await context.setOffline(true);
   await page.reload();
+  await expect(currencyIcons).toHaveCount(3);
+  for (const icon of await currencyIcons.all()) {
+    await expect(icon).toHaveJSProperty('complete', true);
+    expect(await icon.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  }
+  await expect(page.locator('.result-shard')).toHaveCSS('transform', 'none');
   await expect(page.locator('#missing')).toHaveText('15');
   await choose(page, 'targetStars', 6);
   await expect(page.locator('#missing')).toHaveText('260');

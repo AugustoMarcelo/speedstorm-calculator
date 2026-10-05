@@ -16,8 +16,6 @@
   <body>
     <svg class="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9Z"/></symbol>
-      <symbol id="icon-shard" viewBox="0 0 32 40"><path d="m18 2 11 11-10 25L3 26Z" fill="currentColor"/><path d="m18 2-4 21L3 26m11-3 15-10M14 23l5 15" fill="none" stroke="var(--bg)" stroke-width="1.6"/></symbol>
-      <symbol id="icon-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/><path d="M8 12h8m-4-4v8" fill="none" stroke="var(--bg)" stroke-width="1.7" stroke-linecap="round"/></symbol>
       <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="icon-external" viewBox="0 0 24 24"><path d="M6 18 18 6M7 6h11v11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
       <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -68,13 +66,13 @@
               <div class="balance-entry">
                 <label for="balance">Racer Shards in inventory</label>
                 <p class="field-hint" id="balance-hint">Shards you have available to spend on upgrades.</p>
-                <div class="balance-input"><svg aria-hidden="true"><use href="#icon-shard"/></svg><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
+                <div class="balance-input"><img src="./icons/racer-shard.png" alt="" width="24" height="24" /><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
                 <p class="field-error" id="balance-error" hidden>Enter a whole number of Racer Shards from 0 to 9,007,199,254,740,991, without separators.</p>
               </div>
               <div class="balance-entry">
                 <label for="tune-coin-balance">Tune Coins in inventory</label>
                 <p class="field-hint" id="tune-coin-hint">Tune Coins you have available to spend on upgrades.</p>
-                <div class="balance-input"><svg aria-hidden="true"><use href="#icon-coin"/></svg><input id="tune-coin-balance" name="tuneCoinBalance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="tune-coin-hint tune-coin-error" /><span aria-hidden="true">Tune Coins</span></div>
+                <div class="balance-input"><img src="./icons/tune-coin.png" alt="" width="24" height="24" /><input id="tune-coin-balance" name="tuneCoinBalance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="tune-coin-hint tune-coin-error" /><span aria-hidden="true">Tune Coins</span></div>
                 <p class="field-error" id="tune-coin-error" hidden>Enter a whole number of Tune Coins from 0 to 9,007,199,254,740,991, without separators.</p>
               </div>
             </div>
@@ -91,7 +89,7 @@
             <div class="result-topline"><h2 id="result-heading">Upgrade summary</h2><span class="result-target" id="result-target"><svg aria-hidden="true"><use href="#icon-star"/></svg><span>1st Star</span></span></div>
             <div class="result-number-area">
               <p id="result-label" class="result-label">Racer Shards still needed</p>
-              <div class="result-value"><svg class="result-shard" aria-hidden="true"><use href="#icon-shard"/></svg><span id="missing">15</span></div>
+              <div class="result-value"><img class="result-shard" src="./icons/racer-shard.png" alt="" width="36" height="46" /><span id="missing">15</span></div>
               <p id="result-description" class="result-description">Racer Shards to unlock your target</p>
             </div>
             <p id="result-message" class="result-message">Every Star Fragment brings your Racer closer.</p>
