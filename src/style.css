@@ -198,3 +198,16 @@ footer { border-top: 1px solid var(--line); padding-block: 23px 30px; display: f
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+.mpl-entry { margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--line); }
+.planning-section { padding-block: 20px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.5; }
+.planning-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.planning-value { font-weight: 600; }
+.next-upgrade-list { margin: 0; }
+.next-upgrade-list > div + div { margin-top: 16px; }
+.next-upgrade-list dt { color: var(--muted); margin-bottom: 5px; }
+.next-upgrade-list dd { margin: 0; font-variant-numeric: tabular-nums; }
+.planning-section .cost-summary { margin-top: 0; }
+.planning-section .cost-summary dd { flex-shrink: 0; }
+#mpl-milestone-list { padding-left: 20px; font-size: 13px; line-height: 1.8; }
+#mpl-no-rewards { padding-bottom: 12px; }

@@ -78,6 +78,13 @@
                 <p class="field-error" id="tune-coin-error" hidden>Enter a whole number of Tune Coins from 0 to 9,007,199,254,740,991, without separators.</p>
               </div>
             </div>
+            <div class="field-group mpl-entry balance-entry">
+              <label for="current-mpl">Current MPL</label>
+              <p class="field-hint" id="mpl-hint">Optional Solo Multiplayer level, from 0 to 40. Leave blank to disable the projection.</p>
+              <div class="balance-input"><input id="current-mpl" name="currentMpl" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="mpl-hint mpl-claimed-note mpl-error" /><span aria-hidden="true">MPL / 40</span></div>
+              <p class="field-error" id="mpl-error" hidden>Enter a whole number from 0 to 40, without signs or separators, or leave blank.</p>
+              <p class="field-note" id="mpl-claimed-note">Rewards through this MPL are assumed already accounted for. If your rank has reset, enter the highest MPL whose rewards you previously claimed.</p>
+            </div>
           </form>
 
           <section class="result-panel" aria-labelledby="result-heading">
@@ -97,6 +104,31 @@
               <div class="remaining-row"><dt>Tune Coins still needed</dt><dd id="tune-coins-remaining">1,500</dd></div>
             </dl>
             <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already reached this target.</p></div>
+            <section class="planning-section" aria-labelledby="affordable-heading">
+              <h3 id="affordable-heading">Maximum affordable upgrade</h3>
+              <p class="planning-value" id="affordable-progress"></p>
+              <p class="field-note">Based on both inventory balances, regardless of your selected target.</p>
+            </section>
+            <section class="planning-section" aria-labelledby="next-heading">
+              <h3 id="next-heading">Next upgrade comparison</h3>
+              <p id="next-upgrades-max" hidden>Maximum upgrade reached.</p>
+              <dl class="next-upgrade-list" id="next-upgrade-list">
+                <div><dt>Next Star Fragment</dt><dd><p id="next-fragment-cost"></p><p class="field-note" id="next-fragment-shortage"></p></dd></div>
+                <div><dt>Next full Star</dt><dd><p id="next-star-cost"></p><p class="field-note" id="next-star-shortage"></p></dd></div>
+              </dl>
+            </section>
+            <section class="planning-section" id="mpl-projection" aria-labelledby="mpl-heading" hidden>
+              <h3 id="mpl-heading">MPL reward projection</h3>
+              <dl class="cost-summary">
+                <div><dt>Racer Shards still earnable from MPL</dt><dd id="mpl-remaining"></dd></div>
+                <div><dt>Shards still needed after MPL rewards</dt><dd id="projected-shortage"></dd></div>
+              </dl>
+              <p class="field-note">Projection through MPL 40. Future rewards are separate from inventory; Tune Coin shortages and current affordability stay based on what you have now.</p>
+              <details id="mpl-milestones"><summary>Remaining reward milestones <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><ul id="mpl-milestone-list"></ul><p class="field-note" id="mpl-no-rewards" hidden>No Racer Shard milestones remain through MPL 40.</p></details>
+              <a class="source-link" id="mpl-source-link" href="https://speedstorm.fandom.com/wiki/Game_modes/Ranked_Multiplayer" target="_blank" rel="noopener noreferrer">Wiki reward schedule: Seasons 6–17<span class="sr-only"> (opens in a new tab)</span></a>
+              <p class="field-note" id="mpl-lookup-date"></p>
+              <p class="field-note">Fixed planning model for every Racer, not a verified Season 22 reward table. Counts only the listed Racer Shard milestones; random rewards, leaderboard rewards, and multiplayer Tune Coins are excluded.</p>
+            </section>
             <div class="result-bottom"><span class="checkered-flag" aria-hidden="true"></span><span id="route-caption">From the starting line to the 1st star</span></div>
           </section>
         </div>

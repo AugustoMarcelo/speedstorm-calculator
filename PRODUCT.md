@@ -30,7 +30,11 @@ Used on mobile and desktop, including offline after the first complete load. Pre
 - Subtract current Star Fragment progress first, then subtract Racer Shards and Tune Coins in inventory independently. Neither result goes below zero.
 - Defaults: 0 Stars, 0 Star Fragments, target 1 Star with 0 target Star Fragments, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum. Targets at or below current progress cost zero.
 - Accept whole numbers within the valid ranges. Empty inventory fields mean zero. Show errors beside each field.
-- No Racer catalogue, earlier rules, public API, or login.
+- Maximum affordable progress uses both inventory balances, ignores the selected target, and caps at 6 Stars. Next-upgrade comparisons show cumulative costs and shortages for the next Star Fragment and next full Star.
+- Optional Current MPL: whole numbers 0–40, initially blank (projection disabled). Count only Racer Shard milestones strictly above that MPL from the fixed wiki Seasons 6–17 schedule: 2/4, 7/5, 13/5, 18/5, 23/6, 28/6, 33/6, 38/8 (MPL/Shards). This explicitly selected model applies to every Racer and is not a verified universal Season 22 reward table.
+- Future MPL rewards are a separate projection: subtract them from the current shard shortage, clamped at zero. Keep current affordability and Tune Coin shortages based on inventory. Exclude random rewards, leaderboard rewards, and multiplayer Tune Coins.
+- Rewards through entered MPL are assumed accounted for. After rank reset, enter the highest MPL whose rewards were previously claimed. Reset clears MPL; update restoration preserves it, and older snapshots restore it blank.
+- No Racer catalogue, public API, or login.
 - Ask before applying an update; preserve each tab's fields across the reload.
 - The public source repository is `AugustoMarcelo/speedstorm-calculator`; GitHub Actions publishes it to GitHub Pages.
 

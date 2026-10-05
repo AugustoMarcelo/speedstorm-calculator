@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-02T13:31:38Z",
+  "generatedAt": "2026-10-05T13:03:38Z",
   "title": "Design System: Disney Speedstorm Racer Shard Calculator",
   "extensions": {
     "colorMeta": {
@@ -153,51 +153,6 @@
           "#ffd0d0",
           "#ffebeb"
         ]
-      },
-      "disabled-bg": {
-        "role": "neutral",
-        "displayName": "Disabled Background",
-        "canonical": "#172735",
-        "tonalRamp": [
-          "#050708",
-          "#0a1015",
-          "#101a22",
-          "#17232d",
-          "#172735",
-          "#263744",
-          "#3c4c58",
-          "#566570"
-        ]
-      },
-      "disabled-line": {
-        "role": "neutral",
-        "displayName": "Disabled Border",
-        "canonical": "#3a4a59",
-        "tonalRamp": [
-          "#080a0c",
-          "#11171c",
-          "#1d272f",
-          "#2b3945",
-          "#3a4a59",
-          "#4e5e6c",
-          "#687785",
-          "#84919c"
-        ]
-      },
-      "disabled-text": {
-        "role": "neutral",
-        "displayName": "Disabled Text",
-        "canonical": "#93a6b5",
-        "tonalRamp": [
-          "#101213",
-          "#20272c",
-          "#343e46",
-          "#4c5a64",
-          "#687985",
-          "#8496a3",
-          "#a4b4bf",
-          "#c5d0d8"
-        ]
       }
     },
     "typographyMeta": {
@@ -283,34 +238,49 @@
       "description": "Native radio choices for 0–4 target fragments toward the next Star, matching current-progress controls. Changing target Stars resets fragments; six Stars disables them.",
       "html": "<fieldset class=\"ds-fragments\"><legend>Target Star Fragments</legend><div class=\"ds-choices\"><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"0\" aria-label=\"0 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">0</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"1\" aria-label=\"1 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">1</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"2\" aria-label=\"2 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">2</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"3\" aria-label=\"3 of 5 Star Fragments unlocked\" checked><span aria-hidden=\"true\">3</span></label><label class=\"ds-choice\"><input type=\"radio\" name=\"ds-target-fragments\" value=\"4\" aria-label=\"4 of 5 Star Fragments unlocked\"><span aria-hidden=\"true\">4</span></label></div><p>Stop at 2 stars + 3/5 Star Fragments toward the 3rd star.</p></fieldset>",
       "css": ".ds-fragments { border: 0; margin: 0; padding: 0; min-width: 0; color: #edf4fa; font-family: \"Barlow\", sans-serif; } .ds-fragments legend { padding: 0; font-size: 15px; font-weight: 600; } .ds-choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-top: 12px; } .ds-choice { position: relative; min-width: 0; cursor: pointer; } .ds-choice input { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; } .ds-choice span { display: flex; align-items: center; justify-content: center; min-height: 47px; border: 1px solid #30485c; border-radius: 6px; background: #091724; font-weight: 600; font-size: 17px; transition: background-color 140ms ease-out, border-color 140ms ease-out; } .ds-choice input:checked + span { background: #173d4b; border-color: #65e3ef; color: #65e3ef; } .ds-choice input:hover:not(:disabled) + span { border-color: #65e3ef; } .ds-choice input:focus-visible + span { outline: 3px solid #65e3ef; outline-offset: 3px; } .ds-choice input:disabled { cursor: not-allowed; } .ds-choice input:disabled + span { color: #93a6b5; background: #172735; border-color: #3a4a59; } .ds-fragments p { color: #abc0d1; margin-top: 9px; font-size: 12px; line-height: 1.5; } @media (prefers-reduced-motion: reduce) { .ds-choice span { transition: none; } }"
+    },
+    {
+      "name": "Current MPL",
+      "kind": "input",
+      "refersTo": "balance-field",
+      "description": "Optional multiplayer level uses the same native numeric text field, focus ring, and nearby error pattern as inventory.",
+      "html": "<div class=\"ds-mpl\"><label for=\"ds-current-mpl\">Current MPL</label><p>Optional Solo Multiplayer level, from 0 to 40. Leave blank to disable the projection.</p><div class=\"ds-mpl-input\"><input id=\"ds-current-mpl\" type=\"text\" inputmode=\"numeric\" aria-describedby=\"ds-mpl-note\"><span>MPL / 40</span></div><p id=\"ds-mpl-note\">Rewards through this MPL are assumed already accounted for.</p></div>",
+      "css": ".ds-mpl { color: #edf4fa; font-family: \"Barlow\", sans-serif; } .ds-mpl label { font-weight: 600; font-size: 15px; } .ds-mpl p { color: #abc0d1; font-size: 13px; line-height: 1.5; margin: 5px 0 0; } .ds-mpl-input { display: flex; align-items: center; gap: 12px; min-height: 52px; padding-inline: 15px; border: 1px solid #30485c; border-radius: 6px; background: #091724; margin-top: 12px; } .ds-mpl-input input { width: 100%; min-width: 0; padding-block: 12px; border: 0; outline: 0; background: transparent; color: #edf4fa; font: 400 19px \"Barlow\", sans-serif; font-variant-numeric: tabular-nums; caret-color: #65e3ef; } .ds-mpl-input span { color: #abc0d1; font-size: 13px; white-space: nowrap; } .ds-mpl-input:focus-within { outline: 3px solid #65e3ef; outline-offset: 3px; } .ds-mpl-input:has(input[aria-invalid=\"true\"]) { border-color: #ffb6b6; }"
+    },
+    {
+      "name": "Upgrade planning section",
+      "kind": "custom",
+      "description": "Flat, separated planning rows extend the result area with compact headings, currency costs, and shortages.",
+      "html": "<section class=\"ds-planning\"><h3>Next upgrade comparison</h3><dl><div><dt>Next Star Fragment</dt><dd><p>7 Racer Shards · 700 Tune Coins</p><p class=\"ds-planning-note\">Still needed: 2 Racer Shards · 200 Tune Coins</p></dd></div><div><dt>Next full Star</dt><dd><p>14 Racer Shards · 1,400 Tune Coins</p><p class=\"ds-planning-note\">Still needed: 9 Racer Shards · 900 Tune Coins</p></dd></div></dl></section>",
+      "css": ".ds-planning { padding-block: 20px; border-top: 1px solid #30485c; color: #edf4fa; font: 400 14px/1.5 \"Barlow\", sans-serif; } .ds-planning h3 { font-size: 15px; font-weight: 600; margin: 0 0 10px; } .ds-planning dl, .ds-planning dd, .ds-planning p { margin: 0; } .ds-planning dl > div + div { margin-top: 16px; } .ds-planning dt { color: #abc0d1; margin-bottom: 5px; } .ds-planning dd { font-variant-numeric: tabular-nums; } .ds-planning .ds-planning-note { color: #abc0d1; margin-top: 9px; font-size: 12px; line-height: 1.5; }"
     }
   ],
   "narrative": {
     "northStar": "Racing crew upgrade console",
-    "overview": "A compact dashboard for a game decision: choose Stars, Star Fragments, and inventory, then see the Racer Shards and Tune Coins still needed. Deep navy supports focused reading; cyan marks selection and interaction, while yellow marks Stars and the prominent Racer Shards result. Barlow Condensed sets the pace for headings and the large result; Barlow keeps controls and supporting text clear.\\n\\nSmall geometric details, a faceted shard, and a checkered finish marker carry the racing reference. The calculator leads the page, with the explanation beneath.",
+    "overview": "A compact, practical dashboard for checking a Racer’s next Star upgrade. Deep navy supports a focused, low-glare reading scene. Barlow Condensed carries the display and large numeric result; Barlow keeps controls, help, and explanations readable. Cyan identifies selection and focus. Yellow identifies Stars and outstanding Racer Shards.\n\nRacing cues live in small geometric marks, the faceted shard icon, and a checkered finish marker. The calculator and its result occupy the first viewport. Explanatory content follows below.",
     "keyCharacteristics": [
-      "Dark blue surfaces differentiated by tone and fine outlines.",
-      "Cyan for selection and focus; yellow for Stars and outstanding shards.",
-      "Discreet racing motifs made from geometry and local SVGs."
+      "Layered navy-blue surfaces with fine blue outlines.",
+      "Consistent distinction between cyan interactions and yellow Stars or shard counts.",
+      "Original local SVG geometry; no remote images or image-like decoration."
     ],
     "rules": [
       {
         "name": "The Two-Accent Rule",
-        "body": "Cyan marks selection and interaction. Yellow marks Stars and the prominent Racer Shards result.",
+        "body": "Cyan marks selection and interaction. Yellow marks Stars and Racer Shards still needed.",
         "section": "colors"
       }
     ],
     "dos": [
-      "Do reserve cyan for selection, focus, and interaction and yellow for Stars and outstanding shards.",
-      "Do use Barlow Condensed for display numbers and Barlow for controls and body copy.",
-      "Do keep native controls and a visible keyboard focus ring.",
-      "Do stack the form and result below 680px.",
-      "Do use discreet track geometry and local SVG icons."
+      "**Do** reserve cyan for focus and selection, and yellow for Stars and the prominent Racer Shards result.",
+      "**Do** call inventory currencies **Racer Shards** and **Tune Coins**, and unlocked progress **Star Fragments**.",
+      "**Do** retain Barlow Condensed for display numbers and Barlow for body and controls.",
+      "**Do** keep native controls and a visible keyboard focus ring.",
+      "**Do** stack the form and summary below `680px`."
     ],
     "donts": [
-      "Don't use yellow for selection or cyan in place of the remaining-shards highlight.",
-      "Don't rely on color alone for focus, selection, errors, or disabled states.",
-      "Don't add shadows to the main panels; hierarchy comes from blue surfaces and fine outlines."
+      "**Don't** use yellow for the selected state or cyan for the missing-shards result.",
+      "**Don't** rely on color alone for selection, focus, errors, or disabled choices.",
+      "**Don't** add shadows to the main panels or substitute Unicode text for icons."
     ]
   }
 }
