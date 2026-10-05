@@ -6,11 +6,14 @@ import '@fontsource/barlow-condensed/latin-700-italic.css';
 import './style.css';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 import { MAX_STARS, PROGRESSION } from './progression';
+import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage } from './planning';
+import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
 const tuneCoinBalance = document.querySelector<HTMLInputElement>('#tune-coin-balance')!;
+const currentMpl = document.querySelector<HTMLInputElement>('#current-mpl')!;
 const stepsFieldset = document.querySelector<HTMLFieldSetElement>('#steps-fieldset')!;
 const targetStepsFieldset = document.querySelector<HTMLFieldSetElement>('#target-steps-fieldset')!;
 const panel = document.querySelector<HTMLElement>('.result-panel')!;
@@ -51,6 +54,7 @@ function snapshot() {
     targetSteps: selected('targetSteps'),
     balance: balance.value,
     tuneCoinBalance: tuneCoinBalance.value,
+    currentMpl: currentMpl.value,
   };
 }
 
@@ -69,6 +73,7 @@ function restore() {
     select('targetSteps', state.targetSteps ?? 0);
     balance.value = state.balance;
     tuneCoinBalance.value = typeof state.tuneCoinBalance === 'string' ? state.tuneCoinBalance : '0';
+    currentMpl.value = typeof state.currentMpl === 'string' ? state.currentMpl : '';
   } catch {
     // Storage may be unavailable or contain data from an older version.
   }
@@ -88,6 +93,8 @@ function update() {
   const targetDescription = describeProgress(targetStars, targetSteps);
   const parsedBalance = parseBalance(balance.value);
   const parsedTuneCoinBalance = parseBalance(tuneCoinBalance.value);
+  const parsedMpl = parseMpl(currentMpl.value);
+  const invalidMpl = parsedMpl === null;
   const invalidShards = parsedBalance === null;
   const invalidTuneCoins = parsedTuneCoinBalance === null;
   const maxed = currentStars === MAX_STARS;
@@ -103,6 +110,8 @@ function update() {
     ? `${ordinal(targetStars)} Star` : targetDescription;
   document.getElementById('balance-error')!.hidden = !invalidShards;
   document.getElementById('tune-coin-error')!.hidden = !invalidTuneCoins;
+  document.getElementById('mpl-error')!.hidden = !invalidMpl;
+  currentMpl.setAttribute('aria-invalid', String(invalidMpl));
   balance.setAttribute('aria-invalid', String(invalidShards));
   tuneCoinBalance.setAttribute('aria-invalid', String(invalidTuneCoins));
 
@@ -115,6 +124,27 @@ function update() {
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
   const result = calculate(input);
+  const invalidInventory = invalidShards || invalidTuneCoins;
+  const affordable = affordableProgress(input);
+  text('affordable-progress', invalidInventory ? 'Enter valid inventory balances.' : describeProgress(affordable.stars, affordable.steps));
+  const next = nextUpgrades(input);
+  document.getElementById('next-upgrades-max')!.hidden = !maxed;
+  document.getElementById('next-upgrade-list')!.hidden = maxed;
+  for (const [id, upgrade] of [['next-fragment', next.nextFragment], ['next-star', next.nextStar]] as const) {
+    if (!upgrade) continue;
+    text(`${id}-cost`, `${format.format(upgrade.cost.total)} Racer Shards · ${format.format(upgrade.cost.tuneCoinTotal)} Tune Coins`);
+    text(`${id}-shortage`, `Still needed: ${invalidShards ? '—' : format.format(upgrade.cost.missing)} Racer Shards · ${invalidTuneCoins ? '—' : format.format(upgrade.cost.tuneCoinsMissing)} Tune Coins`);
+  }
+  const rewards = remainingMplRewards(parsedMpl ?? undefined);
+  const projection = projectedShardShortage(result.missing, parsedMpl ?? undefined);
+  document.getElementById('mpl-projection')!.hidden = rewards === null;
+  if (rewards) {
+    text('mpl-remaining', format.format(rewards.total));
+    text('projected-shortage', invalidShards ? '—' : format.format(projection!));
+    document.getElementById('mpl-milestone-list')!.innerHTML = rewards.milestones.map(item =>
+      `<li>MPL ${item.mpl}: ${item.shards} Racer Shards</li>`).join('');
+    document.getElementById('mpl-no-rewards')!.hidden = rewards.milestones.length > 0;
+  }
   const reached = targetStars * PROGRESSION.stepsPerStar + targetSteps <= currentStars * PROGRESSION.stepsPerStar + completedSteps;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
@@ -142,7 +172,10 @@ function update() {
   document.getElementById('empty-breakdown')!.hidden = !reached;
   text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked'
     : `From ${currentStars === 0 && completedSteps === 0 ? 'the starting line' : describeProgress(currentStars, completedSteps)} to ${targetDescription}`);
-  announce(invalidShards || invalidTuneCoins ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`);
+  const inventoryAnnouncement = invalidInventory ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`;
+  const projectionAnnouncement = invalidMpl ? ' Current MPL must be a whole number from 0 to 40, or blank.'
+    : projection !== null && !invalidShards ? ` Projection after MPL rewards: ${format.format(projection)} Racer Shards still needed. Future rewards are separate from inventory.` : '';
+  announce(inventoryAnnouncement + projectionAnnouncement);
 }
 
 function describeProgress(stars: number, steps: number): string {
@@ -172,6 +205,9 @@ document.querySelector<HTMLAnchorElement>('#source-link')!.href = PROGRESSION.so
 text('rule-date', `Rules effective ${new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(PROGRESSION.effectiveAt))}`);
 document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.map((cost, index) =>
   `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index])}</td></tr>`).join('');
+
+document.querySelector<HTMLAnchorElement>('#mpl-source-link')!.href = MPL_REWARDS.source;
+text('mpl-lookup-date', `Lookup date: ${MPL_REWARDS.lookupDate}. Schedule selected for this planning model; live source verification unavailable.`);
 
 restore();
 update();

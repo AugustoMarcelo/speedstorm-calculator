@@ -43,6 +43,29 @@ For a partial target, select the full stars and then the fragments toward the ne
 
 Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. Empty inventory fields mean zero.
 
+### Upgrade planning and MPL rewards
+
+**Maximum affordable upgrade** finds the highest full Stars plus Star Fragments reachable using both inventory balances, independently of your selected target. It stops at 6 Stars. **Next upgrade comparison** shows cumulative costs and shortages for the next Star Fragment and next full Star from your current progress.
+
+The optional **Current MPL** field accepts whole numbers from 0 to 40. It starts blank, which disables the projection. Rewards through the entered MPL are assumed already accounted for; after a rank reset, enter the highest MPL whose rewards you previously claimed.
+
+The fixed [wiki reward schedule: Seasons 6–17](https://speedstorm.fandom.com/wiki/Game_modes/Ranked_Multiplayer) is used for every Racer. Lookup attempted October 5, 2026; live fetching was unavailable, so the schedule implements the explicitly selected planning model and is not a verified universal Season 22 reward table.
+
+| MPL milestone | Racer Shards |
+| --- | ---: |
+| 2 | 4 |
+| 7 | 5 |
+| 13 | 5 |
+| 18 | 5 |
+| 23 | 6 |
+| 28 | 6 |
+| 33 | 6 |
+| 38 | 8 |
+
+Only milestones strictly above the entered MPL count: MPL 0 leaves 45 Shards, MPL 2 leaves 41, MPL 7 leaves 36, MPL 37 leaves 8, and MPL 38–40 leaves zero. The expandable reward list shows these remaining milestones. Random rewards, leaderboard rewards, and multiplayer Tune Coin earnings are excluded.
+
+Projected target shortage is `Math.max(0, currentShardShortage - remainingMplShards)`. Future rewards never enter inventory or make an upgrade immediately affordable. Tune Coin shortages remain unchanged. Reset clears MPL, updates restore each tab's MPL edit (including invalid edits), and older snapshots restore with MPL blank. All calculations work offline.
+
 ### Updating the progression table
 
 1. Check an official update.
@@ -79,7 +102,9 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 ## Project structure
 
 - `src/progression.ts`: Season 22 costs and source.
-- `src/calculator.ts`: pure calculation and input validation.
+- `src/calculator.ts`: pure calculation and input validation; its existing contract remains unchanged.
+- `src/planning.ts`: affordable progress, next upgrade comparisons, MPL parsing and reward projections.
+- `src/mpl-rewards.ts`: fixed Seasons 6–17 Racer Shard schedule and source metadata, separate from upgrade costs.
 - `src/main.ts` and `src/style.css`: interface.
 - `src/offline.ts`: service-worker registration and updates.
 - `scripts/build-sw.mjs` and `scripts/sw-template.js`: precache generation.
