@@ -64,6 +64,8 @@ The fixed [wiki reward schedule: Seasons 6–17](https://speedstorm.fandom.com/w
 
 Only milestones strictly above the entered MPL count: MPL 0 leaves 45 Shards, MPL 2 leaves 41, MPL 7 leaves 36, MPL 37 leaves 8, and MPL 38–40 leaves zero. The expandable reward list shows these remaining milestones. Random rewards, leaderboard rewards, and multiplayer Tune Coin earnings are excluded.
 
+The projection also shows the **minimum MPL needed** to cover the selected target's current Racer Shard shortage. The remaining reward list shows cumulative Shards earned since your current MPL and marks the first sufficient milestone as **Target shards covered**. For example, current MPL 7 with 13 missing Racer Shards requires MPL 23: rewards at MPL 13, 18, and 23 total 16 Shards, while MPL 18 provides only 10. If all remaining rewards are insufficient, the projection says how many Shards will still be missing even at MPL 40. If no Shards are missing, no additional MPL rewards are needed; Tune Coins may still be required. Invalid shard inventory shows a correction message instead of a destination.
+
 Projected target shortage is `Math.max(0, currentShardShortage - remainingMplShards)`. Future rewards never enter inventory or make an upgrade immediately affordable. Tune Coin shortages remain unchanged. Reset clears MPL, updates restore each tab's MPL edit (including invalid edits), and older snapshots restore with MPL blank. All calculations work offline.
 
 ### Updating the progression table

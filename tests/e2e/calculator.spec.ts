@@ -389,3 +389,139 @@ test('MPL projection excludes claimed milestones, validates edits, and resets', 
   await expect(page.locator('#mpl-error')).toBeHidden();
   await expect(page.locator('#mpl-projection')).toBeHidden();
 });
+
+test('MPL destination shows the earliest sufficient milestone and reacts to progress edits', async ({ page }) => {
+  await page.goto('./');
+  const shards = page.getByLabel('Racer Shards in inventory');
+  const mpl = page.getByLabel('Current MPL', { exact: true });
+  const destination = page.locator('#mpl-target');
+  const marker = page.locator('.mpl-target-milestone');
+  await shards.fill('2');
+  await mpl.fill('7');
+  await expect(destination).toHaveText('Reach MPL 23 to collect enough Racer Shards for your target (16 earned; 13 needed).');
+  await expect(destination).toBeVisible();
+  await expect(page.locator('#mpl-milestone-list')).toBeHidden();
+  await expect(page.locator('#result-announcement')).toContainText(await destination.innerText());
+  await expect(page.locator('#missing')).toHaveText('13');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('1,500');
+  await expect(page.locator('#affordable-progress')).toHaveText('0 stars');
+  await expect(page.locator('.result-panel')).not.toHaveClass(/is-complete/);
+
+  await page.locator('#mpl-milestones summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#mpl-milestone-list li')).toHaveText([
+    'MPL 13: 5 Racer Shards (5 cumulative)',
+    'MPL 18: 5 Racer Shards (10 cumulative)',
+    'MPL 23: 6 Racer Shards (16 cumulative)Target shards covered',
+    'MPL 28: 6 Racer Shards (22 cumulative)',
+    'MPL 33: 6 Racer Shards (28 cumulative)',
+    'MPL 38: 8 Racer Shards (36 cumulative)',
+  ]);
+  await expect(marker).toHaveCount(1);
+  await expect(marker).toContainText('MPL 23:');
+  await expect(marker).toContainText('Target shards covered');
+  await page.setViewportSize({ width: 320, height: 1000 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await shards.fill('5');
+  await expect(destination).toContainText('Reach MPL 18');
+  await expect(marker).toContainText('MPL 18:');
+  await shards.fill('4');
+  await expect(destination).toContainText('Reach MPL 23');
+  await mpl.fill('13');
+  await expect(destination).toHaveText('Reach MPL 23 to collect enough Racer Shards for your target (11 earned; 11 needed).');
+  await expect(page.locator('#mpl-milestone-list')).not.toContainText('MPL 13:');
+
+  await choose(page, 'completedSteps', 1);
+  await expect(destination).toContainText('Reach MPL 23');
+  await expect(destination).toContainText('8 needed');
+  await choose(page, 'targetStars', 0);
+  await choose(page, 'targetSteps', 4);
+  await expect(destination).toHaveText('Reach MPL 18 to collect enough Racer Shards for your target (5 earned; 5 needed).');
+  await choose(page, 'currentStars', 1);
+  await expect(destination).toContainText('No additional MPL rewards are needed.');
+  await expect(marker).toHaveCount(0);
+
+  await choose(page, 'targetStars', 2);
+  await expect(destination).toContainText('Reach MPL 33');
+  await page.getByLabel('Tune Coins in inventory').fill('abc');
+  await expect(destination).toContainText('Reach MPL 33');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('—');
+  await shards.fill('25');
+  await expect(destination).toHaveText('You already have enough Racer Shards for this target. No additional MPL rewards are needed.');
+  await expect(marker).toHaveCount(0);
+  await page.getByLabel('Tune Coins in inventory').fill('0');
+  await expect(page.locator('#tune-coins-remaining')).toHaveText('2,500');
+  await expect(page.locator('.result-panel')).not.toHaveClass(/is-complete/);
+});
+
+test('MPL destination reports insufficient and exhausted rewards and clears invalid states', async ({ page }) => {
+  await page.goto('./');
+  const shards = page.getByLabel('Racer Shards in inventory');
+  const mpl = page.getByLabel('Current MPL', { exact: true });
+  const destination = page.locator('#mpl-target');
+  const marker = page.locator('.mpl-target-milestone');
+  await choose(page, 'targetStars', 2);
+  await shards.fill('4');
+  await mpl.fill('7');
+  await expect(destination).toContainText('Reach MPL 38');
+  await shards.fill('3');
+  await expect(destination).toHaveText('MPL rewards alone cannot cover your target. Even at MPL 40, you will still need 1 Racer Shard.');
+  await expect(page.locator('#result-announcement')).toContainText(await destination.innerText());
+  await expect(marker).toHaveCount(0);
+  await page.locator('#mpl-milestones summary').click();
+  await expect(page.locator('#mpl-milestone-list li')).toHaveCount(6);
+  await page.setViewportSize({ width: 320, height: 1000 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  await choose(page, 'targetStars', 1);
+  await shards.fill('7');
+  await mpl.fill('37');
+  await expect(destination).toContainText('Reach MPL 38');
+  for (const rank of ['38', '39', '40']) {
+    await mpl.fill(rank);
+    await expect(destination).toContainText('Even at MPL 40, you will still need 8 Racer Shards.');
+    await expect(marker).toHaveCount(0);
+    await expect(page.locator('#mpl-no-rewards')).toBeVisible();
+    await shards.fill('15');
+    await expect(destination).toContainText('No additional MPL rewards are needed.');
+    await shards.fill('7');
+  }
+  await mpl.fill('7');
+  await expect(marker).toHaveCount(1);
+  await shards.fill('-1');
+  await expect(destination).toHaveText('Enter a valid Racer Shard amount to calculate the required MPL.');
+  await expect(marker).toHaveCount(0);
+  await expect(page.locator('#mpl-milestone-list li')).toHaveCount(6);
+  await expect(page.locator('#projected-shortage')).toHaveText('—');
+  await shards.fill('2');
+  await expect(destination).toContainText('Reach MPL 23');
+  for (const edit of ['', '2.5']) {
+    await mpl.fill(edit);
+    await expect(page.locator('#mpl-projection')).toBeHidden();
+    await expect(destination).toBeEmpty();
+    await expect(marker).toHaveCount(0);
+    await mpl.fill('7');
+    await expect(destination).toContainText('Reach MPL 23');
+    await expect(marker).toHaveCount(1);
+  }
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await expect(page.locator('#mpl-projection')).toBeHidden();
+  await expect(destination).toBeEmpty();
+  await expect(marker).toHaveCount(0);
+  await mpl.fill('7');
+  await expect(destination).toContainText('15 needed');
+});
+
+test('MPL destination calculates offline after a cached reload', async ({ page, context }) => {
+  await page.goto('./');
+  await readyOffline(page);
+  await context.setOffline(true);
+  await page.reload();
+  await page.getByLabel('Racer Shards in inventory').fill('2');
+  await page.getByLabel('Current MPL', { exact: true }).fill('7');
+  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 23');
+  await choose(page, 'targetStars', 2);
+  await expect(page.locator('#mpl-target')).toContainText('Even at MPL 40, you will still need 2 Racer Shards.');
+});
