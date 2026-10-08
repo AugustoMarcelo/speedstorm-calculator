@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as planning from './planning';
 import { calculate } from './calculator';
+import { MPL_REWARDS } from './mpl-rewards';
 
 const inventory = { currentStars: 0, completedSteps: 0, balance: 0, tuneCoinBalance: 0 };
 
@@ -22,6 +23,70 @@ describe('affordable progress', () => {
   it('rejects invalid inventory and progress', () => {
     expect(() => planning.affordableProgress({ ...inventory, balance: -1 })).toThrow(RangeError);
     expect(() => planning.nextUpgrades({ ...inventory, currentStars: 6, completedSteps: 1 })).toThrow(RangeError);
+  });
+});
+
+describe('MPL shard target', () => {
+  it.each([
+    [7, 13, 23, 16],
+    [7, 10, 18, 10],
+    [7, 11, 23, 16],
+    [7, 36, 38, 36],
+    [37, 8, 38, 8],
+    [0, 4, 2, 4],
+    [2, 5, 7, 5],
+    [13, 5, 18, 5],
+  ])('MPL %i with %i missing shards requires MPL %i, earning %i', (mpl, shortage, targetMpl, cumulative) => {
+    expect(planning.mplShardTarget(shortage, mpl)).toMatchObject({ status: 'reachable', mpl: targetMpl, cumulative });
+  });
+
+  it('includes cumulative future rewards without the already claimed milestone', () => {
+    expect(planning.mplShardTarget(13, 7)?.milestones).toEqual([
+      { mpl: 13, shards: 5, cumulative: 5 },
+      { mpl: 18, shards: 5, cumulative: 10 },
+      { mpl: 23, shards: 6, cumulative: 16 },
+      { mpl: 28, shards: 6, cumulative: 22 },
+      { mpl: 33, shards: 6, cumulative: 28 },
+      { mpl: 38, shards: 8, cumulative: 36 },
+    ]);
+  });
+
+  it.each([[7, 37, 1], [0, 46, 1], [38, 13, 13], [39, 13, 13], [40, 13, 13]])(
+    'MPL %i with %i missing shards still lacks %i at the maximum', (mpl, shortage, deficit) => {
+      expect(planning.mplShardTarget(shortage, mpl)).toMatchObject({ status: 'insufficient', deficit });
+    });
+
+  it.each([0, 7, 38, 39, 40])('requires no rewards for zero shortage at MPL %i', mpl => {
+    expect(planning.mplShardTarget(0, mpl)).toMatchObject({ status: 'already-covered' });
+  });
+
+  it('disables the target for blank MPL, including zero shortage', () => {
+    expect(planning.mplShardTarget(13, undefined)).toBeNull();
+    expect(planning.mplShardTarget(0, undefined)).toBeNull();
+  });
+
+  it.each([-1, 41, 0.5, NaN, Infinity])('rejects invalid MPL %j', mpl => {
+    expect(() => planning.mplShardTarget(13, mpl)).toThrow(RangeError);
+  });
+
+  it('always chooses the earliest sufficient milestone across every valid MPL', () => {
+    for (let mpl = 0; mpl <= MPL_REWARDS.maxMpl; mpl += 1) {
+      for (let shortage = 1; shortage <= 46; shortage += 1) {
+        const result = planning.mplShardTarget(shortage, mpl)!;
+        if (result.status === 'reachable') {
+          const earnedBefore = MPL_REWARDS.milestones
+            .filter(item => item.mpl > mpl && item.mpl < result.mpl)
+            .reduce((sum, item) => sum + item.shards, 0);
+          expect(earnedBefore).toBeLessThan(shortage);
+          expect(result.cumulative).toBeGreaterThanOrEqual(shortage);
+        } else {
+          const remaining = MPL_REWARDS.milestones.filter(item => item.mpl > mpl)
+            .reduce((sum, item) => sum + item.shards, 0);
+          expect(result).toMatchObject({ status: 'insufficient', deficit: shortage - remaining });
+          expect(remaining).toBeLessThan(shortage);
+        }
+      }
+    }
   });
 });
 

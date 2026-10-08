@@ -54,3 +54,19 @@ export function projectedShardShortage(shortage: number, mpl: number | undefined
   const rewards = remainingMplRewards(mpl);
   return rewards === null ? null : Math.max(0, shortage - rewards.total);
 }
+
+export function mplShardTarget(shortage: number, mpl: number | undefined) {
+  const rewards = remainingMplRewards(mpl);
+  if (rewards === null) return null;
+  let cumulative = 0;
+  const milestones = rewards.milestones.map(item => {
+    cumulative += item.shards;
+    return { ...item, cumulative };
+  });
+  if (shortage === 0) return { status: 'already-covered' as const, milestones };
+  const target = milestones.find(item => item.cumulative >= shortage);
+  if (target) {
+    return { status: 'reachable' as const, mpl: target.mpl, cumulative: target.cumulative, milestones };
+  }
+  return { status: 'insufficient' as const, deficit: Math.max(0, shortage - rewards.total), milestones };
+}

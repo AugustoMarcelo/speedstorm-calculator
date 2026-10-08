@@ -210,4 +210,8 @@ footer { border-top: 1px solid var(--line); padding-block: 23px 30px; display: f
 .planning-section .cost-summary { margin-top: 0; }
 .planning-section .cost-summary dd { flex-shrink: 0; }
 #mpl-milestone-list { padding-left: 20px; font-size: 13px; line-height: 1.8; }
+#mpl-target { margin-top: 16px; }
+.mpl-cumulative { color: var(--muted); font-variant-numeric: tabular-nums; }
+.mpl-target-milestone { margin-block: 8px; font-weight: 600; }
+.mpl-target-marker { display: block; color: var(--yellow); }
 #mpl-no-rewards { padding-bottom: 12px; }

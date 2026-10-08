@@ -6,7 +6,7 @@ import '@fontsource/barlow-condensed/latin-700-italic.css';
 import './style.css';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 import { MAX_STARS, PROGRESSION } from './progression';
-import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage } from './planning';
+import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage, mplShardTarget } from './planning';
 import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 
@@ -137,14 +137,27 @@ function update() {
   }
   const rewards = remainingMplRewards(parsedMpl ?? undefined);
   const projection = projectedShardShortage(result.missing, parsedMpl ?? undefined);
+  const mplTarget = invalidShards ? null : mplShardTarget(result.missing, parsedMpl ?? undefined);
+  let mplTargetMessage = '';
   document.getElementById('mpl-projection')!.hidden = rewards === null;
   if (rewards) {
+    mplTargetMessage = mplTarget === null ? 'Enter a valid Racer Shard amount to calculate the required MPL.'
+      : mplTarget.status === 'already-covered' ? 'You already have enough Racer Shards for this target. No additional MPL rewards are needed.'
+        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(result.missing)} needed).`
+          : `MPL rewards alone cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
     text('mpl-remaining', format.format(rewards.total));
     text('projected-shortage', invalidShards ? '—' : format.format(projection!));
-    document.getElementById('mpl-milestone-list')!.innerHTML = rewards.milestones.map(item =>
-      `<li>MPL ${item.mpl}: ${item.shards} Racer Shards</li>`).join('');
+    let cumulative = 0;
+    document.getElementById('mpl-milestone-list')!.innerHTML = rewards.milestones.map(item => {
+      cumulative += item.shards;
+      const isTarget = mplTarget?.status === 'reachable' && item.mpl === mplTarget.mpl;
+      return `<li${isTarget ? ' class="mpl-target-milestone"' : ''}>MPL ${item.mpl}: ${item.shards} Racer Shards <span class="mpl-cumulative">(${format.format(cumulative)} cumulative)</span>${isTarget ? '<strong class="mpl-target-marker">Target shards covered</strong>' : ''}</li>`;
+    }).join('');
     document.getElementById('mpl-no-rewards')!.hidden = rewards.milestones.length > 0;
+  } else {
+    document.getElementById('mpl-milestone-list')!.innerHTML = '';
   }
+  text('mpl-target', mplTargetMessage);
   const reached = targetStars * PROGRESSION.stepsPerStar + targetSteps <= currentStars * PROGRESSION.stepsPerStar + completedSteps;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
@@ -175,7 +188,7 @@ function update() {
   const inventoryAnnouncement = invalidInventory ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`;
   const projectionAnnouncement = invalidMpl ? ' Current MPL must be a whole number from 0 to 40, or blank.'
     : projection !== null && !invalidShards ? ` Projection after MPL rewards: ${format.format(projection)} Racer Shards still needed. Future rewards are separate from inventory.` : '';
-  announce(inventoryAnnouncement + projectionAnnouncement);
+  announce(inventoryAnnouncement + projectionAnnouncement + (mplTargetMessage ? ` ${mplTargetMessage}` : ''));
 }
 
 function describeProgress(stars: number, steps: number): string {
