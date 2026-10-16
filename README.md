@@ -35,11 +35,21 @@ Each Star takes **5 Star Fragments** to unlock. Each fragment costs a different 
 
 Source: [Racer Progression Update](https://disneyspeedstorm.com/news/disney-speedstorm-racer-progression-update), published September 17, 2026. The update was announced for September 24, 2026 (Season 22). Source checked October 1, 2026.
 
-The calculator adds the remaining Star Fragments needed to reach the target, subtracts the Star Fragments already unlocked toward the next Star, then calculates each currency shortage independently: `missingShards = Math.max(0, shardCost - shardBalance)` and `missingTuneCoins = Math.max(0, tuneCoinCost - tuneCoinBalance)`. A previously reached target costs zero.
+The calculator adds the remaining Star Fragments needed to reach the target, subtracts the Star Fragments already unlocked toward the next Star, then calculates each currency shortage independently: `afterInventory = Math.max(0, shardCost - shardBalance)`; `appliedEventShards = Math.min(afterInventory, plannedEventShards)`; `missingShards = afterInventory - appliedEventShards` and `missingTuneCoins = Math.max(0, tuneCoinCost - tuneCoinBalance)`. A previously reached target costs zero.
 
 Examples: 0 → 6 Stars costs 260 Racer Shards and 26,000 Tune Coins; 4 → 6 costs 140 Racer Shards and 14,000 Tune Coins. From 2 Stars with 3 of 5 Star Fragments unlocked, reaching 3 Stars costs 14 Racer Shards and 1,400 Tune Coins; with 5 Shards and 500 Tune Coins in inventory, 9 Shards and 900 Tune Coins are still needed.
 
 Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. Empty inventory fields mean zero.
+
+### Planning event rewards
+
+Use **Events** to add multiple named events for the single Racer currently being planned. Enter the Racer Shards still obtainable and an inclusive end date. Edit or remove entries with the adjacent controls. Names must contain 1–100 characters after trimming; reward quantities are required nonnegative safe integers (zero is allowed). Dates must be real calendar dates today or later. Event errors appear beside the relevant field.
+
+Owned inventory is applied first, then event rewards are capped at the remaining shard requirement. For a 15-shard target with 5 owned shards and events worth 4 and 3 shards, the projected shortage is 3. Tune Coins and Star Fragment progress are unaffected. The summary separates inventory from planned events and explicitly describes results that depend on uncollected rewards as projected. As rewards are collected, reduce the event amount and update inventory manually to avoid double counting. There is no Racer catalogue or automatic discovery; remove existing events when switching Racer.
+
+Events persist separately in `localStorage` under `speedstorm:events:v1`, including across ordinary reloads, revisits, offline use, and accepted app updates. **Reset retains events** and resets only calculator fields. Events remain active throughout their end date in the device's local timezone. At the next local midnight they are removed from the list, storage, and calculation without crediting inventory. Cleanup also runs before using saved events on startup and when returning to a suspended tab. Closed pages cannot execute cleanup. Midnight scheduling uses local calendar arithmetic, including daylight-saving transitions; other-tab edits and deletions synchronize through storage events.
+
+Malformed saved records are ignored. If storage cannot be read or written, a visible warning explains that changes cannot be saved. Events remain usable in memory in the current tab; they may be lost on reload. Inventory retains its existing reload behavior.
 
 ### Updating the progression table
 
@@ -79,6 +89,8 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 - `src/progression.ts`: Season 22 costs and source.
 - `src/calculator.ts`: pure calculation and input validation.
 - `src/main.ts` and `src/style.css`: interface.
+- `src/events.ts`: event validation, local calendar lifecycle, capped aggregation, and guarded storage.
+- `src/events-ui.ts`: accessible event editor, cross-tab synchronization, and expiry scheduling.
 - `src/offline.ts`: service-worker registration and updates.
 - `scripts/build-sw.mjs` and `scripts/sw-template.js`: precache generation.
 - `scripts/generate-icons.mjs` and `public/favicon*`: browser favicons; `public/icons`: Apple touch and PWA icons.

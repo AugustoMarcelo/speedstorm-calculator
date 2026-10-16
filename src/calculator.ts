@@ -6,6 +6,7 @@ export interface CalculatorInput {
   targetStars: number;
   balance: number;
   tuneCoinBalance: number;
+  eventShards?: number;
 }
 
 export interface StarCost {
@@ -21,6 +22,7 @@ export interface Calculation {
   total: number;
   missing: number;
   appliedBalance: number;
+  appliedEventShards: number;
   tuneCoinTotal: number;
   tuneCoinsMissing: number;
   appliedTuneCoinBalance: number;
@@ -28,7 +30,7 @@ export interface Calculation {
 }
 
 export function calculate(input: CalculatorInput): Calculation {
-  const { currentStars, completedSteps, targetStars, balance, tuneCoinBalance } = input;
+  const { currentStars, completedSteps, targetStars, balance, tuneCoinBalance, eventShards = 0 } = input;
   const validInteger = (value: number, min: number, max: number) =>
     Number.isSafeInteger(value) && value >= min && value <= max;
 
@@ -36,6 +38,7 @@ export function calculate(input: CalculatorInput): Calculation {
     || !validInteger(targetStars, 1, MAX_STARS)
     || !validInteger(completedSteps, 0, PROGRESSION.stepsPerStar - 1)
     || !validInteger(balance, 0, Number.MAX_SAFE_INTEGER)
+    || !validInteger(eventShards, 0, Number.MAX_SAFE_INTEGER)
     || !validInteger(tuneCoinBalance, 0, Number.MAX_SAFE_INTEGER)
     || (currentStars === MAX_STARS && completedSteps !== 0)) {
     throw new RangeError('Stars, Star Fragments, Racer Shards, and Tune Coins must be whole numbers within their limits.');
@@ -50,9 +53,12 @@ export function calculate(input: CalculatorInput): Calculation {
   }
   const total = breakdown.reduce((sum, item) => sum + item.cost, 0);
   const tuneCoinTotal = breakdown.reduce((sum, item) => sum + item.tuneCoinCost, 0);
+  const afterInventory = Math.max(0, total - balance);
+  const appliedEventShards = Math.min(afterInventory, eventShards);
   return {
     total,
-    missing: Math.max(0, total - balance),
+    appliedEventShards,
+    missing: afterInventory - appliedEventShards,
     appliedBalance: Math.min(total, balance),
     tuneCoinTotal,
     tuneCoinsMissing: Math.max(0, tuneCoinTotal - tuneCoinBalance),

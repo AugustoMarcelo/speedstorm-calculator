@@ -85,7 +85,8 @@
             <dl class="cost-summary">
               <div><dt>Total Racer Shards</dt><dd id="total">15</dd></div>
               <div><dt>Inventory Racer Shards used</dt><dd id="applied-balance">− 0</dd></div>
-              <div class="remaining-row"><dt>Racer Shards still needed</dt><dd id="remaining">15</dd></div>
+              <div><dt>Planned event Racer Shards</dt><dd id="applied-events">− 0</dd></div>
+              <div class="remaining-row"><dt id="remaining-label">Racer Shards still needed</dt><dd id="remaining">15</dd></div>
               <div class="currency-start"><dt>Total Tune Coins</dt><dd id="tune-coins-total">1,500</dd></div>
               <div><dt>Inventory Tune Coins used</dt><dd id="tune-coins-applied">− 0</dd></div>
               <div class="remaining-row"><dt>Tune Coins still needed</dt><dd id="tune-coins-remaining">1,500</dd></div>
@@ -96,6 +97,25 @@
         </div>
         <p class="sr-only" id="result-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
         <noscript><p class="noscript">Enable JavaScript to use the calculator. Each star takes 5 Star Fragments. Season 22 costs per star: 15, 25, 35, 45, 65 and 75 Racer Shards; 1,500, 2,500, 3,500, 4,500, 6,500 and 7,500 Tune Coins.</p></noscript>
+
+        <section class="events-section" aria-labelledby="events-heading">
+          <h2 id="events-heading">Events</h2>
+          <p class="field-hint" id="events-help">For the current Racer only: plan Racer Shards still to collect, separate from inventory. As you collect rewards, reduce the event amount and update inventory to avoid counting shards twice.</p>
+          <p class="field-hint">End dates include the whole day in your device’s local timezone. Expired events are removed without crediting inventory. Reset keeps events; remove them explicitly when changing Racer.</p>
+          <p id="events-storage" class="field-error" role="status" hidden>Event changes cannot be saved on this device. Events remain usable in this tab, but may be lost on reload.</p>
+          <ul id="events-list" class="events-list" aria-label="Planned events"></ul>
+          <p id="events-empty" class="field-hint">No events planned. Add rewards you still expect to collect.</p>
+          <form id="event-form" novalidate aria-describedby="events-help">
+            <h3 id="event-editor-heading">Add an event</h3>
+            <div class="event-fields">
+              <div><label for="event-name">Event name</label><input id="event-name" type="text" required aria-describedby="event-name-error" /><p class="field-error" id="event-name-error" hidden></p></div>
+              <div><label for="event-shards">Racer Shards still obtainable</label><input id="event-shards" type="text" inputmode="numeric" required aria-describedby="event-shards-error" /><p class="field-error" id="event-shards-error" hidden></p></div>
+              <div><label for="event-end">End date</label><input id="event-end" type="date" required aria-describedby="event-end-error" /><p class="field-error" id="event-end-error" hidden></p></div>
+            </div>
+            <div class="event-actions"><button type="submit" id="event-submit">Add event</button><button type="button" id="event-cancel" hidden>Cancel edit</button></div>
+          </form>
+          <p id="event-announcement" class="sr-only" role="status"></p>
+        </section>
 
         <section class="explanation" id="how-it-works" aria-labelledby="explanation-heading">
           <div class="explanation-intro"><h2 id="explanation-heading">Less math. <br>More racing.</h2><p>The same progression rules apply to every Racer.</p></div>

@@ -30,7 +30,13 @@ Used on mobile and desktop, including offline after the first complete load. Pre
 - Subtract current Star Fragment progress first, then subtract Racer Shards and Tune Coins in inventory independently. Neither result goes below zero.
 - Defaults: 0 Stars, 0 Star Fragments, target 1 Star, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum.
 - Accept whole numbers within the valid ranges. Empty inventory fields mean zero. Show errors beside each field.
-- No Racer catalogue, earlier rules, public API, or login.
+- Plan multiple named events for the current Racer, each with remaining uncollected Racer Shards and an inclusive local end date. Names contain 1–100 trimmed characters; quantities are required nonnegative safe integers, including zero; dates are today or later.
+- Apply inventory before capped event rewards; show separate planned contributions and projected results whenever uncollected rewards contribute. Events do not affect Tune Coins or unlocked Star Fragments.
+- Manually reduce remaining event rewards and update inventory as shards are collected to avoid double counting. Remove events when changing Racer.
+- Persist events in versioned localStorage (`speedstorm:events:v1`), independently of calculator fields, across reloads, revisits, offline use, and app updates. Reset retains events.
+- End dates include the whole day in the device's local timezone. Remove expired events at the next local midnight, before use on startup, and on tab resume; sync other-tab edits/deletions. Never credit inventory on expiry. Closed pages clean up on the next visit.
+- Ignore malformed stored records. If storage fails, visibly explain that changes cannot be saved; keep events usable in memory in the current tab.
+- No Racer catalogue, automatic event discovery, earlier rules, public API, or login.
 - Ask before applying an update; preserve each tab's fields across the reload.
 - The public source repository is `AugustoMarcelo/speedstorm-calculator`; GitHub Actions publishes it to GitHub Pages.
 

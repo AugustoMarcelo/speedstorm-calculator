@@ -7,6 +7,8 @@ import './style.css';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 import { MAX_STARS, PROGRESSION } from './progression';
 import { setupOffline } from './offline';
+import { eventContribution } from './events';
+import { setupEvents } from './events-ui';
 
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
@@ -102,18 +104,21 @@ function update() {
     balance: parsedBalance ?? 0,
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
-  const result = calculate(input);
+  const inventoryResult = calculate(input);
+  const result = calculate({ ...input, eventShards: eventContribution(getEvents(), inventoryResult.missing) });
+  const projected = result.appliedEventShards > 0;
   const reached = targetStars <= currentStars;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
-  text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
+  text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : projected ? 'Projected Racer Shards still needed' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
   text('missing', invalidShards ? '—' : format.format(result.missing));
-  text('result-description', invalidShards ? 'Enter a valid Racer Shard amount' : 'Racer Shards to unlock your target');
+  text('result-description', invalidShards ? 'Enter a valid Racer Shard amount' : projected ? 'Racer Shards needed after collecting event rewards' : 'Racer Shards to unlock your target');
   const message = invalidShards && invalidTuneCoins ? 'Enter whole-number balances for Racer Shards and Tune Coins.'
     : invalidShards ? 'Racer Shards must be a whole number with no signs or separators.'
       : invalidTuneCoins ? 'Tune Coins must be a whole number with no signs or separators.'
         : maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
     : reached ? 'Your Racer has already unlocked this star. Choose another target.'
+      : projected ? `After collecting event rewards: ${format.format(result.missing)} Racer Shards and ${format.format(result.tuneCoinsMissing)} Tune Coins still needed.`
       : ready ? 'You have enough Racer Shards and Tune Coins.'
         : result.missing === 0 ? `Racer Shards ready. You still need ${format.format(result.tuneCoinsMissing)} Tune Coins.`
           : result.tuneCoinsMissing === 0 ? `Tune Coins ready. You still need ${format.format(result.missing)} Racer Shards.`
@@ -121,6 +126,8 @@ function update() {
   text('result-message', message);
   text('total', format.format(result.total));
   text('applied-balance', invalidShards ? '—' : `− ${format.format(result.appliedBalance)}`);
+  text('applied-events', invalidShards ? '—' : `− ${format.format(result.appliedEventShards)}`);
+  text('remaining-label', projected ? 'Projected Racer Shards still needed' : 'Racer Shards still needed');
   text('remaining', invalidShards ? '—' : format.format(result.missing));
   text('tune-coins-total', format.format(result.tuneCoinTotal));
   text('tune-coins-applied', invalidTuneCoins ? '—' : `− ${format.format(result.appliedTuneCoinBalance)}`);
@@ -129,7 +136,7 @@ function update() {
     `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span>${format.format(item.cost)} <small>Racer Shards</small></span><span>${format.format(item.tuneCoinCost)} <small>Tune Coins</small></span></div></li>`).join('');
   document.getElementById('empty-breakdown')!.hidden = !reached;
   text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked' : currentStars === 0 ? `From the starting line to the ${ordinal(targetStars)} star` : `From ${currentStars} stars to ${targetStars} stars`);
-  announce(invalidShards || invalidTuneCoins ? message : ready ? message : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetStars} stars.`);
+  announce(projected || invalidShards || invalidTuneCoins ? message : ready ? message : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetStars} stars.`);
 }
 
 function ordinal(value: number): string {
@@ -152,6 +159,7 @@ text('rule-date', `Rules effective ${new Intl.DateTimeFormat('en-US', { timeZone
 document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.map((cost, index) =>
   `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost / PROGRESSION.stepsPerStar}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index] / PROGRESSION.stepsPerStar)}</td></tr>`).join('');
 
+const getEvents = setupEvents(update);
 restore();
 update();
 setupOffline(() => {

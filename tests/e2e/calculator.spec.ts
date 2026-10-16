@@ -10,6 +10,13 @@ async function readyOffline(page: Page) {
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 }
 
+async function addEvent(page: Page, name = 'Season finale', shards = '4', end = '2099-12-31') {
+  await page.getByLabel('Event name', { exact: true }).fill(name);
+  await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill(shards);
+  await page.getByLabel('End date', { exact: true }).fill(end);
+  await page.getByRole('button', { name: 'Add event', exact: true }).click();
+}
+
 test.beforeEach(async ({ request }) => { await request.get('/__test/v1'); });
 
 test('calculates examples, reports errors, and resets', async ({ page }) => {
@@ -168,6 +175,7 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await choose(page, 'targetStars', 3);
   await page.getByLabel('Racer Shards in inventory').fill('5');
   await page.getByLabel('Tune Coins in inventory').fill('750');
+  await addEvent(page);
   await page.evaluate(() => caches.open('another-app'));
   const oldCaches = await page.evaluate(() => caches.keys());
   const second = await context.newPage();
@@ -181,12 +189,14 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await expect(page.locator('meta[name="test-release"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
-  await expect(page.locator('#missing')).toHaveText('9');
+  await expect(page.locator('#missing')).toHaveText('5');
+  await expect(page.locator('#events-list')).toContainText('Season finale');
   await expect(page.locator('#balance')).toHaveValue('5');
   await expect(page.locator('#tune-coin-balance')).toHaveValue('750');
   await expect(page.locator('input[name="completedSteps"][value="3"]')).toBeChecked();
   await expect(second.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
-  await expect(second.locator('#missing')).toHaveText('253');
+  await expect(second.locator('#missing')).toHaveText('249');
+  await expect(second.locator('#events-list')).toContainText('Season finale');
   await expect(second.locator('#tune-coin-balance')).toHaveValue('1000');
   const newCaches = await page.evaluate(() => caches.keys());
   expect(newCaches).toContain('another-app');
@@ -207,4 +217,163 @@ test('works when service workers and storage are unavailable', async ({ browser 
   await choose(page, 'targetStars', 6);
   await expect(page.locator('#missing')).toHaveText('260');
   await context.close();
+});
+
+test.describe('event planning', () => {
+  test.use({ timezoneId: 'America/Los_Angeles' });
+
+  test('add/edit/remove, projections, Reset, offline reload and accessible errors', async ({ page, context }) => {
+    await page.clock.install({ time: new Date('2026-10-17T06:30:00Z') }); // Still Oct 16 locally.
+    await page.goto('./');
+    await readyOffline(page);
+    await page.getByLabel('Racer Shards in inventory').fill('5');
+    await addEvent(page, '<img src=x onerror=alert(1)>', '4', '2026-10-16');
+    await addEvent(page, 'Bonus', '3', '2026-10-17');
+    await expect(page.locator('#missing')).toHaveText('3');
+    await expect(page.locator('#applied-events')).toHaveText('− 7');
+    await expect(page.locator('#applied-balance')).toHaveText('− 5');
+    await expect(page.locator('#tune-coins-remaining')).toHaveText('1,500');
+    await expect(page.locator('#result-announcement')).toContainText('After collecting event rewards');
+    await expect(page.locator('#events-list img')).toHaveCount(0);
+    const bonusId = await page.evaluate(() => JSON.parse(localStorage.getItem('speedstorm:events:v1')!).find((event: { name: string }) => event.name === 'Bonus').id);
+    await page.getByRole('button', { name: 'Edit Bonus', exact: true }).click();
+    await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill('10');
+    await page.getByLabel('End date', { exact: true }).fill('2026-10-18');
+    await page.getByRole('button', { name: 'Save event', exact: true }).click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('speedstorm:events:v1')!).find((event: { name: string }) => event.name === 'Bonus').id)).toBe(bonusId);
+    await page.getByLabel('Tune Coins in inventory').fill('1500');
+    await expect(page.locator('#missing')).toHaveText('0');
+    await expect(page.locator('#applied-events')).toHaveText('− 10');
+    await expect(page.locator('#result-label')).toContainText('Projected');
+    await expect(page.locator('#result-message')).toContainText('After collecting event rewards');
+    await page.getByRole('button', { name: 'Reset', exact: true }).click();
+    await expect(page.locator('#missing')).toHaveText('1');
+    await expect(page.locator('#events-list li')).toHaveCount(2);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.locator('#missing')).toHaveText('1');
+    await expect(page.locator('#balance')).toHaveValue('0');
+    await page.getByRole('button', { name: 'Remove Bonus', exact: true }).click();
+    await expect(page.locator('#missing')).toHaveText('11');
+    await page.getByRole('button', { name: 'Add event', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#event-name')).toBeFocused();
+    await expect(page.locator('#event-name-error')).toBeVisible();
+    await expect(page.locator('#event-shards-error')).toBeVisible();
+    await expect(page.locator('#event-end-error')).toBeVisible();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    for (const width of [1440, 390, 320]) {
+      await page.setViewportSize({ width, height: 1000 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    for (const invalid of ['', '-1', '1.5', '1e2', '9007199254740992']) {
+      await addEvent(page, 'Invalid reward', invalid, '2026-10-16');
+      await expect(page.locator('#event-shards-error')).toBeVisible();
+    }
+    await addEvent(page, 'x'.repeat(101), '0', '2026-10-16');
+    await expect(page.locator('#event-name-error')).toBeVisible();
+    await addEvent(page, 'Past', '0', '2026-10-15');
+    await expect(page.locator('#event-end-error')).toBeVisible();
+    await addEvent(page, 'Zero', '0', '2026-10-16');
+    await expect(page.locator('#events-list li')).toHaveCount(2);
+    await page.getByRole('button', { name: 'Edit Zero', exact: true }).click();
+    await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill('1e2');
+    await page.getByRole('button', { name: 'Save event', exact: true }).click();
+    await expect(page.locator('#event-shards-error')).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel edit', exact: true }).click();
+    await expect(page.locator('#event-shards-error')).toBeHidden();
+  });
+
+  test('expires at local midnight on an open page without crediting inventory', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-17T06:29:00Z') });
+    await page.clock.pauseAt(new Date('2026-10-17T06:30:00Z'));
+    await page.goto('./');
+    await addEvent(page, 'Today', '10', '2026-10-16');
+    await page.clock.runFor(30 * 60000 - 1);
+    await expect(page.locator('#missing')).toHaveText('5');
+    await page.clock.runFor(1);
+    await expect(page.locator('#events-empty')).toBeVisible();
+    await expect(page.locator('#missing')).toHaveText('15');
+    await expect(page.locator('#balance')).toHaveValue('0');
+    expect(await page.evaluate(() => localStorage.getItem('speedstorm:events:v1'))).toBe('[]');
+  });
+
+  test('prunes before use after reopening and resumes suspended tabs on focus/visibility', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-16T19:00:00Z') });
+    await page.goto('./');
+    await addEvent(page, 'Today', '5', '2026-10-16');
+    await page.evaluate(() => localStorage.setItem('unrelated', 'keep'));
+    await page.clock.setSystemTime(new Date('2026-10-17T19:00:00Z'));
+    await page.reload();
+    await expect(page.locator('#events-empty')).toBeVisible();
+    await expect(page.locator('#missing')).toHaveText('15');
+    for (const trigger of ['focus', 'visibilitychange']) {
+      await addEvent(page, 'Resume', '5', '2026-10-17');
+      await page.clock.setSystemTime(new Date('2026-10-18T19:00:00Z'));
+      await page.evaluate(trigger => (trigger === 'focus' ? window : document).dispatchEvent(new Event(trigger)), trigger);
+      await expect(page.locator('#events-empty')).toBeVisible();
+      await expect(page.locator('#missing')).toHaveText('15');
+      await page.clock.setSystemTime(new Date('2026-10-17T19:00:00Z'));
+    }
+    expect(await page.evaluate(() => localStorage.getItem('unrelated'))).toBe('keep');
+    expect(await page.evaluate(() => localStorage.getItem('speedstorm:events:v1'))).toBe('[]');
+  });
+
+  test('synchronizes other-tab edits, removals, clear and prunes stale storage changes', async ({ page, context }) => {
+    await page.clock.install({ time: new Date('2026-10-16T19:00:00Z') });
+    await page.goto('./');
+    const second = await context.newPage();
+    await second.clock.install({ time: new Date('2026-10-16T19:00:00Z') });
+    await second.goto('./');
+    await addEvent(page, 'Shared', '4');
+    await expect(second.locator('#missing')).toHaveText('11');
+    await second.getByRole('button', { name: 'Edit Shared', exact: true }).click();
+    await second.getByLabel('Racer Shards still obtainable', { exact: true }).fill('7');
+    await second.getByRole('button', { name: 'Save event', exact: true }).click();
+    await expect(page.locator('#missing')).toHaveText('8');
+    await page.getByRole('button', { name: 'Remove Shared', exact: true }).click();
+    await expect(second.locator('#events-empty')).toBeVisible();
+    await addEvent(second, 'Clear me', '1');
+    await expect(page.locator('#missing')).toHaveText('14');
+    await second.evaluate(() => localStorage.clear());
+    await expect(page.locator('#events-empty')).toBeVisible();
+    await second.evaluate(() => localStorage.setItem('speedstorm:events:v1', JSON.stringify([{ id: 'old', name: 'Expired', remainingShards: 5, endDate: '2026-10-15' }])));
+    await expect(page.locator('#events-empty')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('speedstorm:events:v1'))).toBe('[]');
+  });
+
+  test('blocked storage keeps events usable in memory with visible warning', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
+    });
+    await page.goto('./');
+    await expect(page.locator('#events-storage')).toBeVisible();
+    await addEvent(page, 'Memory only', '10');
+    await expect(page.locator('#missing')).toHaveText('5');
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.locator('#missing')).toHaveText('5');
+    await expect(page.locator('#events-storage')).toBeVisible();
+    await page.getByRole('button', { name: 'Remove Memory only', exact: true }).click();
+    await expect(page.locator('#missing')).toHaveText('15');
+  });
+
+  test('loads untrusted records safely and communicates quota write failure', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-16T19:00:00Z') });
+    await page.addInitScript(() => {
+      localStorage.setItem('speedstorm:events:v1', JSON.stringify([
+        { id: 'valid', name: 'Loaded', remainingShards: Number.MAX_SAFE_INTEGER, endDate: '2099-12-31' },
+        { id: 'past', name: 'Past', remainingShards: 5, endDate: '2026-10-15' }, null,
+      ]));
+      Storage.prototype.setItem = () => { throw new Error('quota'); };
+    });
+    await page.goto('./');
+    await expect(page.locator('#events-list li')).toHaveCount(1);
+    await expect(page.locator('#missing')).toHaveText('0');
+    await expect(page.locator('#events-storage')).toBeVisible();
+    await addEvent(page, 'Also large', '9007199254740991');
+    await expect(page.locator('#applied-events')).toHaveText('− 15');
+    await choose(page, 'currentStars', 1);
+    await expect(page.locator('#applied-events')).toHaveText('− 0');
+    await expect(page.locator('#result-message')).toContainText('already unlocked');
+  });
 });
