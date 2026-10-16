@@ -145,6 +145,12 @@ Separate horizontal fields pair shard and coin icons and numeric values with vis
 
 The form and summary sit in one rounded outlined container. A divider separates the desktop columns; on mobile it runs between stacked panels. The large yellow number makes Racer Shards still needed easy to spot; the summary reports both currencies still needed. A per-Star breakdown shows remaining Star Fragments and their costs in both currencies.
 
+### Events editor and list
+
+A separate Events section follows the calculator, keeping its form outside the calculator form. It inherits the navy surfaces, Barlow type, thin outlines, cyan focus rings, and 44px minimum button targets. Three labeled native inputs capture name, remaining Racer Shards, and inclusive local end date. Fields form three columns on desktop and stack below 680px. Each saved row shows its name, remaining reward, end date, and named Edit/Remove buttons; long names wrap. Edit reuses the form with Save event and Cancel edit actions. Empty state, adjacent field-specific errors with `aria-describedby`/`aria-invalid`, and polite status messages cover empty, invalid, saved-in-memory, and expired states. User text is rendered as text content.
+
+Help explains current-Racer scope, manual reward reconciliation, local date semantics, and Reset retention. A visible storage warning says changes cannot be saved and may be lost on reload. The summary lists planned event shards separately from inventory and labels the result as projected whenever rewards still to collect contribute; the live result announcement carries the same qualification.
+
 ### Expandable progression table
 
 A native disclosure reveals Season 22 totals per full Star in both currencies. Each row covers all five Star Fragments for that Star upgrade. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.

@@ -9,6 +9,8 @@ import { MAX_STARS, PROGRESSION } from './progression';
 import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage, mplShardTarget } from './planning';
 import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
+import { eventContribution } from './events';
+import { setupEvents } from './events-ui';
 
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
@@ -123,7 +125,9 @@ function update() {
     balance: parsedBalance ?? 0,
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
-  const result = calculate(input);
+  const inventoryResult = calculate(input);
+  const result = calculate({ ...input, eventShards: eventContribution(getEvents(), inventoryResult.missing) });
+  const projected = result.appliedEventShards > 0;
   const invalidInventory = invalidShards || invalidTuneCoins;
   const affordable = affordableProgress(input);
   text('affordable-progress', invalidInventory ? 'Enter valid inventory balances.' : describeProgress(affordable.stars, affordable.steps));
@@ -136,14 +140,14 @@ function update() {
     text(`${id}-shortage`, `Still needed: ${invalidShards ? '—' : format.format(upgrade.cost.missing)} Racer Shards · ${invalidTuneCoins ? '—' : format.format(upgrade.cost.tuneCoinsMissing)} Tune Coins`);
   }
   const rewards = remainingMplRewards(parsedMpl ?? undefined);
-  const projection = projectedShardShortage(result.missing, parsedMpl ?? undefined);
-  const mplTarget = invalidShards ? null : mplShardTarget(result.missing, parsedMpl ?? undefined);
+  const projection = projectedShardShortage(inventoryResult.missing, parsedMpl ?? undefined);
+  const mplTarget = invalidShards ? null : mplShardTarget(inventoryResult.missing, parsedMpl ?? undefined);
   let mplTargetMessage = '';
   document.getElementById('mpl-projection')!.hidden = rewards === null;
   if (rewards) {
     mplTargetMessage = mplTarget === null ? 'Enter a valid Racer Shard amount to calculate the required MPL.'
       : mplTarget.status === 'already-covered' ? 'You already have enough Racer Shards for this target. No additional MPL rewards are needed.'
-        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(result.missing)} needed).`
+        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(inventoryResult.missing)} needed).`
           : `MPL rewards alone cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
     text('mpl-remaining', format.format(rewards.total));
     text('projected-shortage', invalidShards ? '—' : format.format(projection!));
@@ -161,14 +165,15 @@ function update() {
   const reached = targetStars * PROGRESSION.stepsPerStar + targetSteps <= currentStars * PROGRESSION.stepsPerStar + completedSteps;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
-  text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
+  text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : projected ? 'Projected Racer Shards still needed' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
   text('missing', invalidShards ? '—' : format.format(result.missing));
-  text('result-description', invalidShards ? 'Enter a valid Racer Shard amount' : 'Racer Shards to unlock your target');
+  text('result-description', invalidShards ? 'Enter a valid Racer Shard amount' : projected ? 'Racer Shards needed after collecting event rewards' : 'Racer Shards to unlock your target');
   const message = invalidShards && invalidTuneCoins ? 'Enter whole-number balances for Racer Shards and Tune Coins.'
     : invalidShards ? 'Racer Shards must be a whole number with no signs or separators.'
       : invalidTuneCoins ? 'Tune Coins must be a whole number with no signs or separators.'
         : maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
     : reached ? 'Your Racer has already reached this target. Choose another target.'
+      : projected ? `After collecting event rewards: ${format.format(result.missing)} Racer Shards and ${format.format(result.tuneCoinsMissing)} Tune Coins still needed.`
       : ready ? 'You have enough Racer Shards and Tune Coins.'
         : result.missing === 0 ? `Racer Shards ready. You still need ${format.format(result.tuneCoinsMissing)} Tune Coins.`
           : result.tuneCoinsMissing === 0 ? `Tune Coins ready. You still need ${format.format(result.missing)} Racer Shards.`
@@ -176,6 +181,8 @@ function update() {
   text('result-message', message);
   text('total', format.format(result.total));
   text('applied-balance', invalidShards ? '—' : `− ${format.format(result.appliedBalance)}`);
+  text('applied-events', invalidShards ? '—' : `− ${format.format(result.appliedEventShards)}`);
+  text('remaining-label', projected ? 'Projected Racer Shards still needed' : 'Racer Shards still needed');
   text('remaining', invalidShards ? '—' : format.format(result.missing));
   text('tune-coins-total', format.format(result.tuneCoinTotal));
   text('tune-coins-applied', invalidTuneCoins ? '—' : `− ${format.format(result.appliedTuneCoinBalance)}`);
@@ -185,7 +192,7 @@ function update() {
   document.getElementById('empty-breakdown')!.hidden = !reached;
   text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked'
     : `From ${currentStars === 0 && completedSteps === 0 ? 'the starting line' : describeProgress(currentStars, completedSteps)} to ${targetDescription}`);
-  const inventoryAnnouncement = invalidInventory ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`;
+  const inventoryAnnouncement = projected || invalidInventory ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`;
   const projectionAnnouncement = invalidMpl ? ' Current MPL must be a whole number from 0 to 40, or blank.'
     : projection !== null && !invalidShards ? ` Projection after MPL rewards: ${format.format(projection)} Racer Shards still needed. Future rewards are separate from inventory.` : '';
   announce(inventoryAnnouncement + projectionAnnouncement + (mplTargetMessage ? ` ${mplTargetMessage}` : ''));
@@ -222,6 +229,7 @@ document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.
 document.querySelector<HTMLAnchorElement>('#mpl-source-link')!.href = MPL_REWARDS.source;
 text('mpl-lookup-date', `Lookup date: ${MPL_REWARDS.lookupDate}. Schedule selected for this planning model; live source verification unavailable.`);
 
+const getEvents = setupEvents(update);
 restore();
 update();
 setupOffline(() => {

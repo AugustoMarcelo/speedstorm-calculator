@@ -199,6 +199,31 @@ footer { border-top: 1px solid var(--line); padding-block: 23px 30px; display: f
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
+.events-section { margin-top: 32px; padding: 28px 34px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.events-section > .field-hint { max-width: 75ch; font-size: 14px; }
+.events-list { list-style: none; margin: 24px 0 0; padding: 0; }
+.events-list li { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.events-list li > div { min-width: 0; }
+.events-list h3 { font-size: 17px; overflow-wrap: anywhere; }
+.events-list p { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+#event-form { margin-top: 24px; }
+#event-form h3 { font-size: 18px; margin-bottom: 16px; }
+.event-fields { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; }
+.event-fields > div { min-width: 0; }
+.event-fields label { display: block; font-size: 15px; font-weight: 600; }
+.event-fields input { display: block; width: 100%; min-width: 0; min-height: 48px; margin-top: 8px; padding: 10px 12px; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; caret-color: var(--cyan); }
+.event-fields input[aria-invalid="true"] { border-color: var(--error); }
+.event-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+#event-form > .event-actions { margin-top: 18px; }
+.event-actions button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.event-actions button:hover { border-color: var(--cyan); color: var(--cyan); }
+#event-submit { background: var(--cyan); color: var(--bg); font-weight: 600; }
+@media (max-width: 680px) {
+  .events-section { padding: 24px 20px; }
+  .event-fields { grid-template-columns: minmax(0, 1fr); }
+  .events-list li { align-items: flex-start; flex-direction: column; gap: 12px; }
+}
+
 .mpl-entry { margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--line); }
 .planning-section { padding-block: 20px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.5; }
 .planning-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }

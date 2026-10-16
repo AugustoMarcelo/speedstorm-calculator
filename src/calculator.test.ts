@@ -22,7 +22,7 @@ describe('Season 22 progression', () => {
 
   it('subtracts progress from the next Star and inventory from the total', () => {
     expect(calculate({ ...input, currentStars: 2, completedSteps: 3, targetStars: 4, balance: 5 })).toEqual({
-      total: 59, missing: 54, appliedBalance: 5, tuneCoinTotal: 5900, tuneCoinsMissing: 5900, appliedTuneCoinBalance: 0,
+      total: 59, missing: 54, appliedBalance: 5, appliedEventShards: 0, tuneCoinTotal: 5900, tuneCoinsMissing: 5900, appliedTuneCoinBalance: 0,
       breakdown: [
         { star: 3, steps: 2, costPerStep: 7, cost: 14, tuneCoinsPerStep: 700, tuneCoinCost: 1400 },
         { star: 4, steps: 5, costPerStep: 9, cost: 45, tuneCoinsPerStep: 900, tuneCoinCost: 4500 },
@@ -47,7 +47,7 @@ describe('Season 22 progression', () => {
 
   it('prices only the fragments between current and target progress', () => {
     expect(calculate({ ...input, currentStars: 2, completedSteps: 1, targetStars: 2, targetSteps: 3, balance: 5, tuneCoinBalance: 500 })).toEqual({
-      total: 14, missing: 9, appliedBalance: 5, tuneCoinTotal: 1400, tuneCoinsMissing: 900, appliedTuneCoinBalance: 500,
+      total: 14, missing: 9, appliedBalance: 5, appliedEventShards: 0, tuneCoinTotal: 1400, tuneCoinsMissing: 900, appliedTuneCoinBalance: 500,
       breakdown: [{ star: 3, steps: 2, costPerStep: 7, cost: 14, tuneCoinsPerStep: 700, tuneCoinCost: 1400 }],
     });
   });
@@ -94,5 +94,27 @@ describe('typed inventory', () => {
   });
   it.each(['-1', '2.5', '2,5', '+1', '1e2', 'abc', 'Infinity', '9007199254740992'])('rejects %j without rounding', (value) => {
     expect(parseBalance(value)).toBeNull();
+  });
+});
+
+
+describe('planned event contributions', () => {
+  it('applies event rewards to partial targets and ignores them for reached fragment targets', () => {
+    const partial = { ...input, currentStars: 2, completedSteps: 1, targetStars: 2, targetSteps: 3, balance: 5, tuneCoinBalance: 500, eventShards: 4 };
+    expect(calculate(partial)).toMatchObject({ total: 14, missing: 5, appliedBalance: 5, appliedEventShards: 4, tuneCoinsMissing: 900 });
+    expect(calculate({ ...partial, targetSteps: 1 })).toMatchObject({ total: 0, missing: 0, appliedEventShards: 0 });
+  });
+  it('uses inventory first and leaves Tune Coins unchanged', () => {
+    expect(calculate({ ...input, balance: 5, eventShards: 7 })).toMatchObject({
+      total: 15, appliedBalance: 5, appliedEventShards: 7, missing: 3, tuneCoinsMissing: 1500,
+    });
+  });
+  it('caps rewards at the requirement and ignores rewards for reached targets', () => {
+    expect(calculate({ ...input, balance: 5, eventShards: Number.MAX_SAFE_INTEGER })).toMatchObject({ missing: 0, appliedEventShards: 10 });
+    expect(calculate({ ...input, balance: 20, eventShards: 10 }).appliedEventShards).toBe(0);
+    expect(calculate({ ...input, currentStars: 1, eventShards: 10 })).toMatchObject({ total: 0, missing: 0, appliedEventShards: 0 });
+  });
+  it.each([-1, 0.1, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])('rejects invalid event rewards %s', eventShards => {
+    expect(() => calculate({ ...input, eventShards })).toThrow(RangeError);
   });
 });

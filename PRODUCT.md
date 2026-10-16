@@ -30,12 +30,18 @@ Used on mobile and desktop, including offline after the first complete load. Pre
 - Subtract current Star Fragment progress first, then subtract Racer Shards and Tune Coins in inventory independently. Neither result goes below zero.
 - Defaults: 0 Stars, 0 Star Fragments, target 1 Star with 0 target Star Fragments, 0 Racer Shards, and 0 Tune Coins. Six Stars is the maximum. Targets at or below current progress cost zero.
 - Accept whole numbers within the valid ranges. Empty inventory fields mean zero. Show errors beside each field.
+- Plan multiple named events for the current Racer, each with remaining uncollected Racer Shards and an inclusive local end date. Names contain 1–100 trimmed characters; quantities are required nonnegative safe integers, including zero; dates are today or later.
+- Apply inventory before capped event rewards; show separate planned contributions and projected results whenever uncollected rewards contribute. Events do not affect Tune Coins or unlocked Star Fragments.
+- Manually reduce remaining event rewards and update inventory as shards are collected to avoid double counting. Remove events when changing Racer.
+- Persist events in versioned localStorage (`speedstorm:events:v1`), independently of calculator fields, across reloads, revisits, offline use, and app updates. Reset retains events.
+- End dates include the whole day in the device's local timezone. Remove expired events at the next local midnight, before use on startup, and on tab resume; sync other-tab edits/deletions. Never credit inventory on expiry. Closed pages clean up on the next visit.
+- Ignore malformed stored records. If storage fails, visibly explain that changes cannot be saved; keep events usable in memory in the current tab.
+- No Racer catalogue, automatic event discovery, earlier rules, public API, or login.
 - Maximum affordable progress uses both inventory balances, ignores the selected target, and caps at 6 Stars. Next-upgrade comparisons show cumulative costs and shortages for the next Star Fragment and next full Star.
 - Optional Current MPL: whole numbers 0–40, initially blank (projection disabled). Count only Racer Shard milestones strictly above that MPL from the fixed wiki Seasons 6–17 schedule: 2/4, 7/5, 13/5, 18/5, 23/6, 28/6, 33/6, 38/8 (MPL/Shards). This explicitly selected model applies to every Racer and is not a verified universal Season 22 reward table.
-- Future MPL rewards are a separate projection: subtract them from the current shard shortage, clamped at zero. Keep current affordability and Tune Coin shortages based on inventory. Exclude random rewards, leaderboard rewards, and multiplayer Tune Coins.
+- MPL planning stays based on inventory alone, independently of planned events. Future MPL rewards are a separate projection: subtract them from the current shard shortage, clamped at zero. Keep current affordability and Tune Coin shortages based on inventory. Exclude random rewards, leaderboard rewards, and multiplayer Tune Coins.
 - Show the earliest future MPL milestone whose cumulative Racer Shards cover the selected target's current shard shortage. Keep the destination visible above the remaining reward disclosure; show cumulative rewards and mark the first sufficient milestone with “Target shards covered.” MPL 7 with 13 missing Shards requires MPL 23 (16 earned). If rewards are insufficient, report the shortage still remaining even at MPL 40. Zero shortage requires no further MPL rewards; invalid shard inventory shows a correction message. Announce the destination and recalculate immediately as inputs change, including offline.
 - Rewards through entered MPL are assumed accounted for. After rank reset, enter the highest MPL whose rewards were previously claimed. Reset clears MPL; update restoration preserves it, and older snapshots restore it blank.
-- No Racer catalogue, public API, or login.
 - Ask before applying an update; preserve each tab's fields across the reload.
 - The public source repository is `AugustoMarcelo/speedstorm-calculator`; GitHub Actions publishes it to GitHub Pages.
 
