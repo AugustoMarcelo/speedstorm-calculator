@@ -6,6 +6,8 @@ import '@fontsource/barlow-condensed/latin-700-italic.css';
 import './style.css';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 import { MAX_STARS, PROGRESSION } from './progression';
+import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage, mplShardTarget } from './planning';
+import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 import { eventContribution } from './events';
 import { setupEvents } from './events-ui';
@@ -13,7 +15,9 @@ import { setupEvents } from './events-ui';
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
 const tuneCoinBalance = document.querySelector<HTMLInputElement>('#tune-coin-balance')!;
+const currentMpl = document.querySelector<HTMLInputElement>('#current-mpl')!;
 const stepsFieldset = document.querySelector<HTMLFieldSetElement>('#steps-fieldset')!;
+const targetStepsFieldset = document.querySelector<HTMLFieldSetElement>('#target-steps-fieldset')!;
 const panel = document.querySelector<HTMLElement>('.result-panel')!;
 const format = new Intl.NumberFormat('en-US');
 const starIcon = '<svg aria-hidden="true"><use href="#icon-star"/></svg>';
@@ -33,7 +37,8 @@ function renderChoices(id: string, name: string, first: number, last: number, se
 
 renderChoices('current-stars', 'currentStars', 0, MAX_STARS, 0, true);
 renderChoices('completed-steps', 'completedSteps', 0, PROGRESSION.stepsPerStar - 1, 0);
-renderChoices('target-stars', 'targetStars', 1, MAX_STARS, 1, true);
+renderChoices('target-stars', 'targetStars', 0, MAX_STARS, 1, true);
+renderChoices('target-steps', 'targetSteps', 0, PROGRESSION.stepsPerStar - 1, 0);
 
 function selected(name: string): number {
   return Number(form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)!.value);
@@ -48,8 +53,10 @@ function snapshot() {
     currentStars: selected('currentStars'),
     completedSteps: selected('completedSteps'),
     targetStars: selected('targetStars'),
+    targetSteps: selected('targetSteps'),
     balance: balance.value,
     tuneCoinBalance: tuneCoinBalance.value,
+    currentMpl: currentMpl.value,
   };
 }
 
@@ -65,8 +72,10 @@ function restore() {
     select('currentStars', state.currentStars);
     select('completedSteps', state.completedSteps);
     select('targetStars', state.targetStars);
+    select('targetSteps', state.targetSteps ?? 0);
     balance.value = state.balance;
     tuneCoinBalance.value = typeof state.tuneCoinBalance === 'string' ? state.tuneCoinBalance : '0';
+    currentMpl.value = typeof state.currentMpl === 'string' ? state.currentMpl : '';
   } catch {
     // Storage may be unavailable or contain data from an older version.
   }
@@ -82,18 +91,29 @@ function update() {
   const currentStars = selected('currentStars');
   const completedSteps = selected('completedSteps');
   const targetStars = selected('targetStars');
+  const targetSteps = selected('targetSteps');
+  const targetDescription = describeProgress(targetStars, targetSteps);
   const parsedBalance = parseBalance(balance.value);
   const parsedTuneCoinBalance = parseBalance(tuneCoinBalance.value);
+  const parsedMpl = parseMpl(currentMpl.value);
+  const invalidMpl = parsedMpl === null;
   const invalidShards = parsedBalance === null;
   const invalidTuneCoins = parsedTuneCoinBalance === null;
   const maxed = currentStars === MAX_STARS;
   stepsFieldset.disabled = maxed;
+  targetStepsFieldset.disabled = targetStars === MAX_STARS;
+  text('target-step-note', targetStars === MAX_STARS
+    ? 'Maximum target: all 6 stars unlocked.'
+    : `Stop at ${targetDescription}.`);
   text('step-note', maxed
     ? 'Maximum upgrade reached: all 6 stars unlocked.'
     : `${completedSteps} of 5 Star Fragments unlocked toward your ${ordinal(currentStars + 1)} star.`);
-  document.querySelector('#result-target span')!.textContent = `${ordinal(targetStars)} Star`;
+  document.querySelector('#result-target span')!.textContent = targetSteps === 0 && targetStars > 0
+    ? `${ordinal(targetStars)} Star` : targetDescription;
   document.getElementById('balance-error')!.hidden = !invalidShards;
   document.getElementById('tune-coin-error')!.hidden = !invalidTuneCoins;
+  document.getElementById('mpl-error')!.hidden = !invalidMpl;
+  currentMpl.setAttribute('aria-invalid', String(invalidMpl));
   balance.setAttribute('aria-invalid', String(invalidShards));
   tuneCoinBalance.setAttribute('aria-invalid', String(invalidTuneCoins));
 
@@ -101,13 +121,48 @@ function update() {
     currentStars,
     completedSteps,
     targetStars,
+    targetSteps,
     balance: parsedBalance ?? 0,
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
   const inventoryResult = calculate(input);
   const result = calculate({ ...input, eventShards: eventContribution(getEvents(), inventoryResult.missing) });
   const projected = result.appliedEventShards > 0;
-  const reached = targetStars <= currentStars;
+  const invalidInventory = invalidShards || invalidTuneCoins;
+  const affordable = affordableProgress(input);
+  text('affordable-progress', invalidInventory ? 'Enter valid inventory balances.' : describeProgress(affordable.stars, affordable.steps));
+  const next = nextUpgrades(input);
+  document.getElementById('next-upgrades-max')!.hidden = !maxed;
+  document.getElementById('next-upgrade-list')!.hidden = maxed;
+  for (const [id, upgrade] of [['next-fragment', next.nextFragment], ['next-star', next.nextStar]] as const) {
+    if (!upgrade) continue;
+    text(`${id}-cost`, `${format.format(upgrade.cost.total)} Racer Shards · ${format.format(upgrade.cost.tuneCoinTotal)} Tune Coins`);
+    text(`${id}-shortage`, `Still needed: ${invalidShards ? '—' : format.format(upgrade.cost.missing)} Racer Shards · ${invalidTuneCoins ? '—' : format.format(upgrade.cost.tuneCoinsMissing)} Tune Coins`);
+  }
+  const rewards = remainingMplRewards(parsedMpl ?? undefined);
+  const projection = projectedShardShortage(inventoryResult.missing, parsedMpl ?? undefined);
+  const mplTarget = invalidShards ? null : mplShardTarget(inventoryResult.missing, parsedMpl ?? undefined);
+  let mplTargetMessage = '';
+  document.getElementById('mpl-projection')!.hidden = rewards === null;
+  if (rewards) {
+    mplTargetMessage = mplTarget === null ? 'Enter a valid Racer Shard amount to calculate the required MPL.'
+      : mplTarget.status === 'already-covered' ? 'You already have enough Racer Shards for this target. No additional MPL rewards are needed.'
+        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(inventoryResult.missing)} needed).`
+          : `MPL rewards alone cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
+    text('mpl-remaining', format.format(rewards.total));
+    text('projected-shortage', invalidShards ? '—' : format.format(projection!));
+    let cumulative = 0;
+    document.getElementById('mpl-milestone-list')!.innerHTML = rewards.milestones.map(item => {
+      cumulative += item.shards;
+      const isTarget = mplTarget?.status === 'reachable' && item.mpl === mplTarget.mpl;
+      return `<li${isTarget ? ' class="mpl-target-milestone"' : ''}>MPL ${item.mpl}: ${item.shards} Racer Shards <span class="mpl-cumulative">(${format.format(cumulative)} cumulative)</span>${isTarget ? '<strong class="mpl-target-marker">Target shards covered</strong>' : ''}</li>`;
+    }).join('');
+    document.getElementById('mpl-no-rewards')!.hidden = rewards.milestones.length > 0;
+  } else {
+    document.getElementById('mpl-milestone-list')!.innerHTML = '';
+  }
+  text('mpl-target', mplTargetMessage);
+  const reached = targetStars * PROGRESSION.stepsPerStar + targetSteps <= currentStars * PROGRESSION.stepsPerStar + completedSteps;
   const ready = result.missing === 0 && result.tuneCoinsMissing === 0;
   panel.classList.toggle('is-complete', !invalidShards && !invalidTuneCoins && ready);
   text('result-label', invalidShards ? 'Check your inventory' : maxed ? 'Maximum stars unlocked' : reached ? 'Target already reached' : projected ? 'Projected Racer Shards still needed' : ready ? 'Ready to upgrade' : 'Racer Shards still needed');
@@ -117,7 +172,7 @@ function update() {
     : invalidShards ? 'Racer Shards must be a whole number with no signs or separators.'
       : invalidTuneCoins ? 'Tune Coins must be a whole number with no signs or separators.'
         : maxed ? 'Your Racer has unlocked all 6 stars. Ready to race!'
-    : reached ? 'Your Racer has already unlocked this star. Choose another target.'
+    : reached ? 'Your Racer has already reached this target. Choose another target.'
       : projected ? `After collecting event rewards: ${format.format(result.missing)} Racer Shards and ${format.format(result.tuneCoinsMissing)} Tune Coins still needed.`
       : ready ? 'You have enough Racer Shards and Tune Coins.'
         : result.missing === 0 ? `Racer Shards ready. You still need ${format.format(result.tuneCoinsMissing)} Tune Coins.`
@@ -135,8 +190,17 @@ function update() {
   document.getElementById('breakdown-list')!.innerHTML = result.breakdown.map(item =>
     `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span>${format.format(item.cost)} <small>Racer Shards</small></span><span>${format.format(item.tuneCoinCost)} <small>Tune Coins</small></span></div></li>`).join('');
   document.getElementById('empty-breakdown')!.hidden = !reached;
-  text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked' : currentStars === 0 ? `From the starting line to the ${ordinal(targetStars)} star` : `From ${currentStars} stars to ${targetStars} stars`);
-  announce(projected || invalidShards || invalidTuneCoins ? message : ready ? message : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetStars} stars.`);
+  text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked'
+    : `From ${currentStars === 0 && completedSteps === 0 ? 'the starting line' : describeProgress(currentStars, completedSteps)} to ${targetDescription}`);
+  const inventoryAnnouncement = projected || invalidInventory ? message : ready ? `${message} Target: ${targetDescription}.` : `${format.format(result.missing)} Racer Shards still needed. ${format.format(result.tuneCoinsMissing)} Tune Coins still needed to reach ${targetDescription}.`;
+  const projectionAnnouncement = invalidMpl ? ' Current MPL must be a whole number from 0 to 40, or blank.'
+    : projection !== null && !invalidShards ? ` Projection after MPL rewards: ${format.format(projection)} Racer Shards still needed. Future rewards are separate from inventory.` : '';
+  announce(inventoryAnnouncement + projectionAnnouncement + (mplTargetMessage ? ` ${mplTargetMessage}` : ''));
+}
+
+function describeProgress(stars: number, steps: number): string {
+  const fullStars = `${stars} ${stars === 1 ? 'star' : 'stars'}`;
+  return steps === 0 ? fullStars : `${fullStars} + ${steps}/${PROGRESSION.stepsPerStar} Star Fragments toward the ${ordinal(stars + 1)} star`;
 }
 
 function ordinal(value: number): string {
@@ -148,6 +212,9 @@ form.addEventListener('input', event => {
   if (event.target instanceof HTMLInputElement && event.target.name === 'currentStars') {
     select('completedSteps', 0);
   }
+  if (event.target instanceof HTMLInputElement && event.target.name === 'targetStars') {
+    select('targetSteps', 0);
+  }
   update();
 });
 form.addEventListener('submit', event => event.preventDefault());
@@ -157,7 +224,10 @@ document.querySelectorAll('[data-season]').forEach(element => { element.textCont
 document.querySelector<HTMLAnchorElement>('#source-link')!.href = PROGRESSION.source;
 text('rule-date', `Rules effective ${new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(PROGRESSION.effectiveAt))}`);
 document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.map((cost, index) =>
-  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost / PROGRESSION.stepsPerStar}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index] / PROGRESSION.stepsPerStar)}</td></tr>`).join('');
+  `<tr><th scope="row">${index} → ${index + 1}</th><td>${cost}</td><td>${format.format(PROGRESSION.tuneCoinCosts[index])}</td></tr>`).join('');
+
+document.querySelector<HTMLAnchorElement>('#mpl-source-link')!.href = MPL_REWARDS.source;
+text('mpl-lookup-date', `Lookup date: ${MPL_REWARDS.lookupDate}. Schedule selected for this planning model; live source verification unavailable.`);
 
 const getEvents = setupEvents(update);
 restore();

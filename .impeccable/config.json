@@ -12,6 +12,15 @@
         ],
         "createdAt": "2026-10-08T16:02:08.690Z",
         "reason": "Codex verified false positive: src/style.css defines h1 at 36–54px (40px mobile), section headings at 24–32px, and body text at 13–17px, exceeding the detector's 1.25x threshold. Preserve the existing hierarchy; suppress this rule only for index.html."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(0, 0, 0)",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-02T13:31:54.341Z",
+        "reason": "Codex verified false positive: src/style.css sets .skip-link color to var(--bg), defined as #091724 in the documented palette; the static HTML scan reports black instead of the externally styled value."
       }
     ]
   }

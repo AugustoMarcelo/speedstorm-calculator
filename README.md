@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target, and 0 Racer Shards and Tune Coins in inventory. Changing the current star resets Star Fragment progress, since that progress applies to the next star.
+Open `http://localhost:5173/speedstorm-calculator/`. The initial values are 0 Stars, 0 Star Fragments unlocked, a 1st Star target with 0 target Star Fragments, and 0 Racer Shards and Tune Coins in inventory. Choose 0–6 full stars and 0–4 Star Fragments for both current progress and your target. Changing either star selection resets its fragments; at 6 stars, fragments are disabled.
 
 ```sh
 npm run build
@@ -39,6 +39,8 @@ The calculator adds the remaining Star Fragments needed to reach the target, sub
 
 Examples: 0 → 6 Stars costs 260 Racer Shards and 26,000 Tune Coins; 4 → 6 costs 140 Racer Shards and 14,000 Tune Coins. From 2 Stars with 3 of 5 Star Fragments unlocked, reaching 3 Stars costs 14 Racer Shards and 1,400 Tune Coins; with 5 Shards and 500 Tune Coins in inventory, 9 Shards and 900 Tune Coins are still needed.
 
+For a partial target, select the full stars and then the fragments toward the next star. From 2 Stars + 1 fragment to 2 Stars + 3 fragments costs 14 Racer Shards and 1,400 Tune Coins. Each fragment represents 0.2 stars, so targets follow whole-fragment upgrades rather than half-star estimates. Targets below 1 Star are supported, including a zero-progress target that costs nothing.
+
 Only whole numbers within the valid ranges are accepted. Negative values, fractions, scientific notation, and values above `Number.MAX_SAFE_INTEGER` are rejected. Empty inventory fields mean zero.
 
 ### Planning event rewards
@@ -50,6 +52,33 @@ Owned inventory is applied first, then event rewards are capped at the remaining
 Events persist separately in `localStorage` under `speedstorm:events:v1`, including across ordinary reloads, revisits, offline use, and accepted app updates. **Reset retains events** and resets only calculator fields. Events remain active throughout their end date in the device's local timezone. At the next local midnight they are removed from the list, storage, and calculation without crediting inventory. Cleanup also runs before using saved events on startup and when returning to a suspended tab. Closed pages cannot execute cleanup. Midnight scheduling uses local calendar arithmetic, including daylight-saving transitions; other-tab edits and deletions synchronize through storage events.
 
 Malformed saved records are ignored. If storage cannot be read or written, a visible warning explains that changes cannot be saved. Events remain usable in memory in the current tab; they may be lost on reload. Inventory retains its existing reload behavior.
+
+### Upgrade planning and MPL rewards
+
+Event planning and MPL are separate projections from the same inventory. Planned event rewards do not change the MPL destination or current affordable upgrade.
+
+**Maximum affordable upgrade** finds the highest full Stars plus Star Fragments reachable using both inventory balances, independently of your selected target. It stops at 6 Stars. **Next upgrade comparison** shows cumulative costs and shortages for the next Star Fragment and next full Star from your current progress.
+
+The optional **Current MPL** field accepts whole numbers from 0 to 40. It starts blank, which disables the projection. Rewards through the entered MPL are assumed already accounted for; after a rank reset, enter the highest MPL whose rewards you previously claimed.
+
+The fixed [wiki reward schedule: Seasons 6–17](https://speedstorm.fandom.com/wiki/Game_modes/Ranked_Multiplayer) is used for every Racer. Lookup attempted October 5, 2026; live fetching was unavailable, so the schedule implements the explicitly selected planning model and is not a verified universal Season 22 reward table.
+
+| MPL milestone | Racer Shards |
+| --- | ---: |
+| 2 | 4 |
+| 7 | 5 |
+| 13 | 5 |
+| 18 | 5 |
+| 23 | 6 |
+| 28 | 6 |
+| 33 | 6 |
+| 38 | 8 |
+
+Only milestones strictly above the entered MPL count: MPL 0 leaves 45 Shards, MPL 2 leaves 41, MPL 7 leaves 36, MPL 37 leaves 8, and MPL 38–40 leaves zero. The expandable reward list shows these remaining milestones. Random rewards, leaderboard rewards, and multiplayer Tune Coin earnings are excluded.
+
+The projection also shows the **minimum MPL needed** to cover the selected target's current Racer Shard shortage. The remaining reward list shows cumulative Shards earned since your current MPL and marks the first sufficient milestone as **Target shards covered**. For example, current MPL 7 with 13 missing Racer Shards requires MPL 23: rewards at MPL 13, 18, and 23 total 16 Shards, while MPL 18 provides only 10. If all remaining rewards are insufficient, the projection says how many Shards will still be missing even at MPL 40. If no Shards are missing, no additional MPL rewards are needed; Tune Coins may still be required. Invalid shard inventory shows a correction message instead of a destination.
+
+Projected target shortage is `Math.max(0, currentShardShortage - remainingMplShards)`. Future rewards never enter inventory or make an upgrade immediately affordable. Tune Coin shortages remain unchanged. Reset clears MPL, updates restore each tab's MPL edit (including invalid edits), and older snapshots restore with MPL blank. All calculations work offline.
 
 ### Updating the progression table
 
@@ -87,7 +116,9 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 ## Project structure
 
 - `src/progression.ts`: Season 22 costs and source.
-- `src/calculator.ts`: pure calculation and input validation.
+- `src/calculator.ts`: pure calculation and input validation; its existing contract remains unchanged.
+- `src/planning.ts`: affordable progress, next upgrade comparisons, MPL parsing and reward projections.
+- `src/mpl-rewards.ts`: fixed Seasons 6–17 Racer Shard schedule and source metadata, separate from upgrade costs.
 - `src/main.ts` and `src/style.css`: interface.
 - `src/events.ts`: event validation, local calendar lifecycle, capped aggregation, and guarded storage.
 - `src/events-ui.ts`: accessible event editor, cross-tab synchronization, and expiry scheduling.

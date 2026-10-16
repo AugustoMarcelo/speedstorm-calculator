@@ -135,7 +135,7 @@ Inputs and radio choices use small `6px` corners. The calculator uses a `14px` r
 
 ### Star and Star Fragment choices
 
-Native radio inputs use clickable labels, arrow-key operation, at least `46px` hit targets, and a cyan focus ring. The Star Fragment choices describe already unlocked progress toward the next Star; at six Stars the controls are disabled.
+Native radio inputs use clickable labels, arrow-key operation, at least `46px` hit targets, and a cyan focus ring. Separate Star Fragment choices describe current and target progress toward the next Star; at six Stars the corresponding controls are disabled. Target summaries include fragments when selected and wrap to fit narrow screens.
 
 ### Currency inventory fields
 
@@ -153,7 +153,7 @@ Help explains current-Racer scope, manual reward reconciliation, local date sema
 
 ### Expandable progression table
 
-A native disclosure reveals Season 22 costs per Star Fragment in both currencies. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
+A native disclosure reveals Season 22 totals per full Star in both currencies. Each row covers all five Star Fragments for that Star upgrade. Its plus icon rotates on open. Thin row rules and tabular numerals support quick comparison.
 
 ### Update notice and links
 
