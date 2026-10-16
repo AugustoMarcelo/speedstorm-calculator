@@ -696,7 +696,40 @@ test.describe('event planning', () => {
 });
 
 
-test('event projections preserve partial targets and inventory-only planning tools', async ({ page }) => {
+test('MPL destination combines inventory and event rewards for a partial star target', async ({ page }) => {
+  await page.goto('./');
+  await choose(page, 'currentStars', 4);
+  await choose(page, 'targetStars', 4);
+  await choose(page, 'targetSteps', 1);
+  await page.getByLabel('Racer Shards in inventory').fill('6');
+  await page.getByLabel('Current MPL', { exact: true }).fill('8');
+  await expect(page.locator('#total')).toHaveText('13');
+  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 18');
+
+  await addEvent(page, 'Target reward', '5');
+  await expect(page.locator('#missing')).toHaveText('2');
+  await expect(page.locator('#mpl-target')).toHaveText('Reach MPL 13 to collect enough Racer Shards for your target (5 earned; 2 needed).');
+  await expect(page.locator('.mpl-target-milestone')).toContainText('MPL 13:');
+  await expect(page.locator('#result-announcement')).toContainText('Reach MPL 13');
+  await expect(page.locator('#balance')).toHaveValue('6');
+  await expect(page.locator('#affordable-progress')).toHaveText('4 stars');
+
+  await page.getByRole('button', { name: 'Edit Target reward', exact: true }).click();
+  await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill('7');
+  await page.getByRole('button', { name: 'Save event', exact: true }).click();
+  await expect(page.locator('#mpl-target')).toContainText('No additional MPL rewards are needed.');
+  await expect(page.locator('#mpl-target')).toContainText('After collecting planned event rewards');
+  await expect(page.locator('.mpl-target-milestone')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Remove Target reward', exact: true }).click();
+  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 18');
+  await choose(page, 'targetSteps', 4);
+  await addEvent(page, 'Target reward', '5');
+  await expect(page.locator('#projected-shortage')).toHaveText('5');
+  await expect(page.locator('#mpl-target')).toContainText('Even at MPL 40, you will still need 5 Racer Shards.');
+});
+
+test('event projections combine with MPL while preserving inventory-only affordability', async ({ page }) => {
   await page.goto('./');
   await choose(page, 'currentStars', 2);
   await choose(page, 'completedSteps', 1);
@@ -712,14 +745,14 @@ test('event projections preserve partial targets and inventory-only planning too
   await expect(page.locator('#result-label')).toContainText('Projected');
   await expect(page.locator('#affordable-progress')).toHaveText('2 stars + 1/5 Star Fragments toward the 3rd star');
   await expect(page.locator('#next-fragment-shortage')).toHaveText('Still needed: 2 Racer Shards · 200 Tune Coins');
-  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 18');
-  await expect(page.locator('#mpl-target')).toContainText('9 needed');
+  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 13');
+  await expect(page.locator('#mpl-target')).toContainText('5 needed');
   await page.getByRole('button', { name: 'Edit Partial target', exact: true }).click();
   await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill('9');
   await page.getByRole('button', { name: 'Save event', exact: true }).click();
   await expect(page.locator('#missing')).toHaveText('0');
   await expect(page.locator('#result-message')).toContainText('After collecting event rewards');
-  await expect(page.locator('#mpl-target')).toContainText('Reach MPL 18');
+  await expect(page.locator('#mpl-target')).toContainText('No additional MPL rewards are needed.');
   await expect(page.locator('#affordable-progress')).toHaveText('2 stars + 1/5 Star Fragments toward the 3rd star');
   await choose(page, 'targetSteps', 1);
   await expect(page.locator('#applied-events')).toHaveText('− 0');

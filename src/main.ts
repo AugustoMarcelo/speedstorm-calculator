@@ -140,15 +140,17 @@ function update() {
     text(`${id}-shortage`, `Still needed: ${invalidShards ? '—' : format.format(upgrade.cost.missing)} Racer Shards · ${invalidTuneCoins ? '—' : format.format(upgrade.cost.tuneCoinsMissing)} Tune Coins`);
   }
   const rewards = remainingMplRewards(parsedMpl ?? undefined);
-  const projection = projectedShardShortage(inventoryResult.missing, parsedMpl ?? undefined);
-  const mplTarget = invalidShards ? null : mplShardTarget(inventoryResult.missing, parsedMpl ?? undefined);
+  const projection = projectedShardShortage(result.missing, parsedMpl ?? undefined);
+  const mplTarget = invalidShards ? null : mplShardTarget(result.missing, parsedMpl ?? undefined);
   let mplTargetMessage = '';
   document.getElementById('mpl-projection')!.hidden = rewards === null;
   if (rewards) {
     mplTargetMessage = mplTarget === null ? 'Enter a valid Racer Shard amount to calculate the required MPL.'
-      : mplTarget.status === 'already-covered' ? 'You already have enough Racer Shards for this target. No additional MPL rewards are needed.'
-        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(inventoryResult.missing)} needed).`
-          : `MPL rewards alone cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
+      : mplTarget.status === 'already-covered' ? projected
+        ? 'After collecting planned event rewards, you will have enough Racer Shards for this target. No additional MPL rewards are needed.'
+        : 'You already have enough Racer Shards for this target. No additional MPL rewards are needed.'
+        : mplTarget.status === 'reachable' ? `Reach MPL ${mplTarget.mpl} to collect enough Racer Shards for your target (${format.format(mplTarget.cumulative)} earned; ${format.format(result.missing)} needed).`
+          : `${projected ? 'MPL and planned event rewards' : 'MPL rewards alone'} cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
     text('mpl-remaining', format.format(rewards.total));
     text('projected-shortage', invalidShards ? '—' : format.format(projection!));
     let cumulative = 0;

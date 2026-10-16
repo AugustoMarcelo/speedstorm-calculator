@@ -55,7 +55,7 @@ Malformed saved records are ignored. If storage cannot be read or written, a vis
 
 ### Upgrade planning and MPL rewards
 
-Event planning and MPL are separate projections from the same inventory. Planned event rewards do not change the MPL destination or current affordable upgrade.
+MPL planning uses the shortage after inventory and planned event rewards. Its destination assumes those event rewards will be collected. Current affordable upgrades and next-upgrade comparisons use inventory only.
 
 **Maximum affordable upgrade** finds the highest full Stars plus Star Fragments reachable using both inventory balances, independently of your selected target. It stops at 6 Stars. **Next upgrade comparison** shows cumulative costs and shortages for the next Star Fragment and next full Star from your current progress.
 
@@ -78,7 +78,7 @@ Only milestones strictly above the entered MPL count: MPL 0 leaves 45 Shards, MP
 
 The projection also shows the **minimum MPL needed** to cover the selected target's current Racer Shard shortage. The remaining reward list shows cumulative Shards earned since your current MPL and marks the first sufficient milestone as **Target shards covered**. For example, current MPL 7 with 13 missing Racer Shards requires MPL 23: rewards at MPL 13, 18, and 23 total 16 Shards, while MPL 18 provides only 10. If all remaining rewards are insufficient, the projection says how many Shards will still be missing even at MPL 40. If no Shards are missing, no additional MPL rewards are needed; Tune Coins may still be required. Invalid shard inventory shows a correction message instead of a destination.
 
-Projected target shortage is `Math.max(0, currentShardShortage - remainingMplShards)`. Future rewards never enter inventory or make an upgrade immediately affordable. Tune Coin shortages remain unchanged. Reset clears MPL, updates restore each tab's MPL edit (including invalid edits), and older snapshots restore with MPL blank. All calculations work offline.
+Projected target shortage is `Math.max(0, shortageAfterInventoryAndEvents - remainingMplShards)`. For a Racer at 4 Stars targeting 4 Stars + 1 Star Fragment (13 Shards), 6 owned Shards and 5 planned event Shards leave 2 needed. From MPL 8, the 5-Shard reward at MPL 13 covers that shortage. Future rewards never enter inventory or make an upgrade immediately affordable. Tune Coin shortages remain unchanged. Reset clears MPL, updates restore each tab's MPL edit (including invalid edits), and older snapshots restore with MPL blank. All calculations work offline.
 
 ### Updating the progression table
 
