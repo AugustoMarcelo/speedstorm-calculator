@@ -55,9 +55,15 @@ Malformed saved records are ignored. If storage cannot be read or written, a vis
 
 ### Upgrade planning and MPL rewards
 
-MPL planning uses the shortage after inventory and planned event rewards. Its destination assumes those event rewards will be collected. Current affordable upgrades and next-upgrade comparisons use inventory only.
+MPL planning uses the shortage after inventory and planned event rewards. Its destination assumes those event rewards will be collected. Maximum inventory upgrades and next-upgrade comparisons use inventory only.
 
-**Maximum affordable upgrade** finds the highest full Stars plus Star Fragments reachable using both inventory balances, independently of your selected target. It stops at 6 Stars. **Next upgrade comparison** shows cumulative costs and shortages for the next Star Fragment and next full Star from your current progress.
+**Maximum upgrade from inventory** appears in Upgrade summary after Upgrade breakdown and before Next upgrade comparison. **Maximum with your Racer Shards** shows the highest consecutive full Stars plus Star Fragments supported by owned shards, ignoring Tune Coins. **Tune Coins still needed to reach this upgrade** reports the cumulative coin cost to that destination minus owned coins, clamped at zero. **Affordable now with both currencies** retains the immediate affordability calculation using both balances. Both maximums ignore your selected target and uncollected event/MPL rewards, stop at 6 Stars, and never spend inventory or change your target.
+
+From 2 Stars + 3/5 Star Fragments, 23 owned shards support 3 Stars + 1/5 Star Fragments, costing 2,300 Tune Coins. With 1,400 coins, 900 more coins are needed and 3 Stars are affordable now. With zero coins, shard potential stays the same, 2,300 coins are needed, and immediate affordability stays at current progress. If shards cannot buy the next fragment, the destination is current progress and its coin shortage is zero.
+
+Empty balances mean zero. Invalid Tune Coins preserve shard potential and show a coin correction for the shortage and immediate affordability. Invalid Racer Shards show a shard correction for all three outputs, taking precedence if both balances are invalid; adjacent field errors remain visible. Results recalculate immediately, offline, after Reset, and after restoring fields for an accepted update; outputs are not stored.
+
+**Next upgrade comparison** shows cumulative costs and shortages for the next Star Fragment and next full Star from your current progress.
 
 The optional **Current MPL** field accepts whole numbers from 0 to 40. It starts blank, which disables the projection. Rewards through the entered MPL are assumed already accounted for; after a rank reset, enter the highest MPL whose rewards you previously claimed.
 
@@ -117,7 +123,7 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 
 - `src/progression.ts`: Season 22 costs and source.
 - `src/calculator.ts`: pure calculation and input validation; its existing contract remains unchanged.
-- `src/planning.ts`: affordable progress, next upgrade comparisons, MPL parsing and reward projections.
+- `src/planning.ts`: shard-limited and affordable progress, next upgrade comparisons, MPL parsing and reward projections.
 - `src/mpl-rewards.ts`: fixed Seasons 6–17 Racer Shard schedule and source metadata, separate from upgrade costs.
 - `src/main.ts` and `src/style.css`: interface.
 - `src/events.ts`: event validation, local calendar lifecycle, capped aggregation, and guarded storage.

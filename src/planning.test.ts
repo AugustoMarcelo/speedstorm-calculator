@@ -5,6 +5,55 @@ import { MPL_REWARDS } from './mpl-rewards';
 
 const inventory = { currentStars: 0, completedSteps: 0, balance: 0, tuneCoinBalance: 0 };
 
+describe('shard-limited progress', () => {
+  it.each([
+    [0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0],
+    [0, 0, 3, 0, 1],
+    [0, 0, 14, 0, 4],
+    [0, 0, 15, 1, 0],
+    [2, 3, 6, 2, 3],
+    [2, 3, 7, 2, 4],
+    [2, 3, 14, 3, 0],
+    [2, 3, 22, 3, 0],
+    [2, 3, 23, 3, 1],
+    [5, 4, 14, 5, 4],
+    [5, 4, 15, 6, 0],
+    [6, 0, 0, 6, 0],
+    [0, 0, 260, 6, 0],
+    [0, 0, Number.MAX_SAFE_INTEGER, 6, 0],
+  ])('from %i + %i, %i shards reach %i + %i', (currentStars, completedSteps, balance, stars, steps) => {
+    expect(planning.shardLimitedProgress({ currentStars, completedSteps, balance })).toEqual({ stars, steps });
+  });
+
+  it.each([
+    { balance: -1 }, { balance: 0.5 }, { balance: NaN }, { balance: Infinity },
+    { balance: Number.MAX_SAFE_INTEGER + 1 }, { currentStars: -1 }, { currentStars: 7 },
+    { currentStars: 0.5 }, { currentStars: NaN }, { completedSteps: -1 },
+    { completedSteps: 5 }, { completedSteps: 0.5 }, { currentStars: 6, completedSteps: 1 },
+  ])('rejects invalid shards or progress %j', invalid => {
+    expect(() => planning.shardLimitedProgress({ ...inventory, ...invalid })).toThrow(RangeError);
+  });
+
+  it.each([[0, 2300, 2, 3], [1400, 900, 3, 0], [2300, 0, 3, 1], [99999, 0, 3, 1]])(
+    'approved example with %i coins needs %i; affordable %i + %i', (tuneCoinBalance, tuneCoinsMissing, stars, steps) => {
+      const input = { currentStars: 2, completedSteps: 3, balance: 23, tuneCoinBalance };
+      const destination = planning.shardLimitedProgress(input);
+      expect(destination).toEqual({ stars: 3, steps: 1 });
+      expect(calculate({ ...input, targetStars: destination.stars, targetSteps: destination.steps }))
+        .toMatchObject({ total: 23, tuneCoinTotal: 2300, tuneCoinsMissing });
+      expect(planning.affordableProgress(input)).toEqual({ stars, steps });
+    },
+  );
+
+  it('requires no coins when shards cannot buy the next fragment', () => {
+    const input = { ...inventory, currentStars: 2, completedSteps: 3, balance: 6 };
+    const destination = planning.shardLimitedProgress(input);
+    expect(calculate({ ...input, targetStars: destination.stars, targetSteps: destination.steps }))
+      .toMatchObject({ total: 0, tuneCoinTotal: 0, tuneCoinsMissing: 0 });
+  });
+});
+
 describe('affordable progress', () => {
   it.each([
     [0, 0, 15, 1500, 1, 0],

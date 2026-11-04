@@ -6,7 +6,7 @@ import '@fontsource/barlow-condensed/latin-700-italic.css';
 import './style.css';
 import { calculate, parseBalance, type CalculatorInput } from './calculator';
 import { MAX_STARS, PROGRESSION } from './progression';
-import { affordableProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage, mplShardTarget } from './planning';
+import { affordableProgress, shardLimitedProgress, nextUpgrades, parseMpl, remainingMplRewards, projectedShardShortage, mplShardTarget } from './planning';
 import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 import { eventContribution } from './events';
@@ -87,6 +87,35 @@ function announce(message: string) {
   announcementTimer = setTimeout(() => text('result-announcement', message), 180);
 }
 
+let inventoryAnnouncementTimer: ReturnType<typeof setTimeout>;
+function updateInventoryProgress(input: CalculatorInput, shardBalance: number | null, coinBalance: number | null) {
+  const shardError = 'Enter a valid Racer Shard balance.';
+  const coinError = 'Enter a valid Tune Coin balance.';
+  let shardProgress = shardError;
+  let coinShortage = shardError;
+  let affordableProgressText = shardError;
+  if (shardBalance !== null) {
+    const destination = shardLimitedProgress({ currentStars: input.currentStars, completedSteps: input.completedSteps, balance: shardBalance });
+    shardProgress = describeProgress(destination.stars, destination.steps);
+    coinShortage = coinError;
+    affordableProgressText = coinError;
+    if (coinBalance !== null) {
+      const cost = calculate({ ...input, targetStars: destination.stars, targetSteps: destination.steps, balance: shardBalance, tuneCoinBalance: coinBalance });
+      coinShortage = format.format(cost.tuneCoinsMissing);
+      const affordable = affordableProgress(input);
+      affordableProgressText = describeProgress(affordable.stars, affordable.steps);
+    }
+  }
+  text('shard-progress', shardProgress);
+  text('shard-progress-coins', coinShortage);
+  text('affordable-progress', affordableProgressText);
+  const message = `Maximum with your Racer Shards: ${shardProgress}. Tune Coins still needed to reach this upgrade: ${coinShortage}. Affordable now with both currencies: ${affordableProgressText}. Based on current progress and owned inventory. Independent of your selected target. Event and MPL rewards are excluded.`;
+  clearTimeout(inventoryAnnouncementTimer);
+  inventoryAnnouncementTimer = setTimeout(() => {
+    if (document.getElementById('inventory-announcement')!.textContent !== message) text('inventory-announcement', message);
+  }, 180);
+}
+
 function update() {
   const currentStars = selected('currentStars');
   const completedSteps = selected('completedSteps');
@@ -129,8 +158,7 @@ function update() {
   const result = calculate({ ...input, eventShards: eventContribution(getEvents(), inventoryResult.missing) });
   const projected = result.appliedEventShards > 0;
   const invalidInventory = invalidShards || invalidTuneCoins;
-  const affordable = affordableProgress(input);
-  text('affordable-progress', invalidInventory ? 'Enter valid inventory balances.' : describeProgress(affordable.stars, affordable.steps));
+  updateInventoryProgress(input, parsedBalance, parsedTuneCoinBalance);
   const next = nextUpgrades(input);
   document.getElementById('next-upgrades-max')!.hidden = !maxed;
   document.getElementById('next-upgrade-list')!.hidden = maxed;
