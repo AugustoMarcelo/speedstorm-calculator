@@ -104,9 +104,14 @@
             </dl>
             <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already reached this target.</p></div>
             <section class="planning-section" aria-labelledby="affordable-heading">
-              <h3 id="affordable-heading">Maximum affordable upgrade</h3>
-              <p class="planning-value" id="affordable-progress"></p>
-              <p class="field-note">Based on both inventory balances, regardless of your selected target.</p>
+              <h3 id="affordable-heading">Maximum upgrade from inventory</h3>
+              <dl class="inventory-upgrade-list">
+                <div><dt>Maximum with your Racer Shards</dt><dd class="planning-value" id="shard-progress"></dd></div>
+                <div><dt>Tune Coins still needed to reach this upgrade</dt><dd id="shard-progress-coins"></dd></div>
+                <div><dt>Affordable now with both currencies</dt><dd id="affordable-progress"></dd></div>
+              </dl>
+              <p class="field-note">Based on current progress and owned inventory. Independent of your selected target. Event and MPL rewards are excluded.</p>
+              <p id="inventory-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
             </section>
             <section class="planning-section" aria-labelledby="next-heading">
               <h3 id="next-heading">Next upgrade comparison</h3>

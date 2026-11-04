@@ -24,6 +24,18 @@ export function affordableProgress(input: InventoryInput) {
   return progressAt(progress);
 }
 
+export function shardLimitedProgress(input: Pick<CalculatorInput, 'currentStars' | 'completedSteps' | 'balance'>) {
+  const inventory = { currentStars: input.currentStars, completedSteps: input.completedSteps, balance: input.balance, tuneCoinBalance: 0 };
+  calculate({ ...inventory, targetStars: MAX_STARS, targetSteps: 0 });
+  let progress = input.currentStars * PROGRESSION.stepsPerStar + input.completedSteps;
+  while (progress < MAX_STARS * PROGRESSION.stepsPerStar) {
+    const { cost } = costTo(inventory, progress + 1);
+    if (cost.missing > 0) break;
+    progress += 1;
+  }
+  return progressAt(progress);
+}
+
 export function nextUpgrades(input: InventoryInput) {
   calculate({ ...input, targetStars: MAX_STARS, targetSteps: 0 });
   if (input.currentStars === MAX_STARS) return { nextFragment: null, nextStar: null };

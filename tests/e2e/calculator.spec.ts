@@ -216,9 +216,23 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   await page.getByText('See upgrade costs').click();
   await page.getByLabel('Current MPL', { exact: true }).fill('0');
   await page.locator('#mpl-milestones summary').click();
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 3);
+  await page.getByLabel('Racer Shards in inventory').fill('23');
+  await page.getByLabel('Tune Coins in inventory').fill('1400');
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const positions = await page.evaluate(() => {
+      const breakdown = document.querySelector('.breakdown')!.getBoundingClientRect();
+      const inventory = document.querySelector('[aria-labelledby="affordable-heading"]')!.getBoundingClientRect();
+      const next = document.querySelector('[aria-labelledby="next-heading"]')!.getBoundingClientRect();
+      return { breakdownEnd: breakdown.bottom, inventoryStart: inventory.top, inventoryEnd: inventory.bottom, nextStart: next.top };
+    });
+    expect(positions.inventoryStart).toBeGreaterThanOrEqual(positions.breakdownEnd);
+    expect(positions.nextStart).toBeGreaterThanOrEqual(positions.inventoryEnd);
+    expect(parseFloat(await page.locator('#shard-progress').evaluate(el => getComputedStyle(el).fontSize)))
+      .toBeLessThan(parseFloat(await page.locator('#missing').evaluate(el => getComputedStyle(el).fontSize)));
     if (width === 1440 || width === 390) {
       await page.screenshot({ path: `.impeccable/review/${width === 1440 ? 'desktop' : 'mobile'}.png`, fullPage: true, animations: 'disabled' });
     }
@@ -312,6 +326,9 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await expect(page.locator('#balance')).toHaveValue('5');
   await expect(page.locator('#tune-coin-balance')).toHaveValue('750');
   await expect(page.locator('#current-mpl')).toHaveValue('7');
+  await expect(page.locator('#shard-progress')).toHaveText('2 stars + 3/5 Star Fragments toward the 3rd star');
+  await expect(page.locator('#shard-progress-coins')).toHaveText('0');
+  await expect(page.locator('#affordable-progress')).toHaveText('2 stars + 3/5 Star Fragments toward the 3rd star');
   await expect(page.locator('#projected-shortage')).toHaveText('0');
   await expect(page.locator('input[name="completedSteps"][value="3"]')).toBeChecked();
   await expect(second.locator('meta[name="test-release"]')).toHaveAttribute('content', '2');
@@ -320,6 +337,9 @@ test('updates versions, preserve fields in both tabs, and remove only app caches
   await expect(second.locator('#tune-coin-balance')).toHaveValue('1000');
   await expect(second.locator('#current-mpl')).toHaveValue('2.5');
   await expect(second.locator('#mpl-error')).toBeVisible();
+  await expect(second.locator('#shard-progress')).toHaveText('0 stars + 2/5 Star Fragments toward the 1st star');
+  await expect(second.locator('#shard-progress-coins')).toHaveText('0');
+  await expect(second.locator('#affordable-progress')).toHaveText('0 stars + 2/5 Star Fragments toward the 1st star');
   const newCaches = await page.evaluate(() => caches.keys());
   expect(newCaches).toContain('another-app');
   expect(newCaches.filter(name => name.startsWith('speedstorm:'))).toHaveLength(1);
@@ -364,6 +384,134 @@ test('planning tools use inventory independently of the target and future reward
   await choose(page, 'currentStars', 6);
   await expect(page.locator('#next-upgrades-max')).toHaveText('Maximum upgrade reached.');
   await expect(page.locator('#next-upgrade-list')).toBeHidden();
+});
+
+test('inventory maximum separates shard potential, coin shortage, and immediate affordability', async ({ page }) => {
+  await page.goto('./');
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 3);
+  await choose(page, 'targetStars', 6);
+  await page.getByLabel('Racer Shards in inventory').fill('23');
+  await page.getByLabel('Tune Coins in inventory').fill('1400');
+  const potential = page.locator('#shard-progress');
+  const shortage = page.locator('#shard-progress-coins');
+  const affordable = page.locator('#affordable-progress');
+  const status = page.locator('#inventory-announcement');
+  const destination = '3 stars + 1/5 Star Fragments toward the 4th star';
+  await expect(potential).toHaveText(destination);
+  await expect(shortage).toHaveText('900');
+  await expect(affordable).toHaveText('3 stars');
+  await expect(status).toHaveAttribute('aria-live', 'polite');
+  await expect(status).toHaveAttribute('aria-atomic', 'true');
+  await expect(status).toContainText(`Maximum with your Racer Shards: ${destination}`);
+  await expect(status).toContainText('Tune Coins still needed to reach this upgrade: 900');
+  await expect(status).toContainText('Affordable now with both currencies: 3 stars');
+  await expect(page.locator('#result-announcement')).toContainText('176 Racer Shards still needed');
+  await expect(page.locator('#result-announcement')).not.toContainText('Maximum with your Racer Shards');
+  await status.evaluate(element => {
+    element.dataset.updates = '0';
+    new MutationObserver(() => { element.dataset.updates = String(Number(element.dataset.updates) + 1); })
+      .observe(element, { childList: true });
+  });
+  await page.getByLabel('Current MPL', { exact: true }).fill('0');
+  await addEvent(page, 'Future shards', '100');
+  for (const target of [0, 2, 3, 6]) {
+    await choose(page, 'targetStars', target);
+    if (target < 6) await choose(page, 'targetSteps', 4);
+    await expect(potential).toHaveText(destination);
+    await expect(shortage).toHaveText('900');
+    await expect(affordable).toHaveText('3 stars');
+  }
+  await expect(page.locator('#balance')).toHaveValue('23');
+  await expect(page.locator('#tune-coin-balance')).toHaveValue('1400');
+  await expect(page.locator('input[name="targetStars"][value="6"]')).toBeChecked();
+  await expect(page.locator('#result-announcement')).toContainText('After collecting event rewards');
+  await expect(status).toHaveAttribute('data-updates', '0');
+  for (const coins of ['0', '']) {
+    await page.getByLabel('Tune Coins in inventory').fill(coins);
+    await expect(potential).toHaveText(destination);
+    await expect(shortage).toHaveText('2,300');
+    await expect(affordable).toHaveText('2 stars + 3/5 Star Fragments toward the 3rd star');
+  }
+  for (const coins of ['2300', '99999']) {
+    await page.getByLabel('Tune Coins in inventory').fill(coins);
+    await expect(shortage).toHaveText('0');
+    await expect(affordable).toHaveText(destination);
+  }
+  for (const shards of ['6', '']) {
+    await page.getByLabel('Racer Shards in inventory').fill(shards);
+    await expect(potential).toHaveText('2 stars + 3/5 Star Fragments toward the 3rd star');
+    await expect(shortage).toHaveText('0');
+  }
+  await choose(page, 'currentStars', 5);
+  await choose(page, 'completedSteps', 4);
+  await page.getByLabel('Racer Shards in inventory').fill('15');
+  await expect(potential).toHaveText('6 stars');
+  await expect(affordable).toHaveText('6 stars');
+  await choose(page, 'currentStars', 6);
+  await page.getByLabel('Tune Coins in inventory').fill('0');
+  await expect(potential).toHaveText('6 stars');
+  await expect(affordable).toHaveText('6 stars');
+  await expect(shortage).toHaveText('0');
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await expect(potential).toHaveText('0 stars');
+  await expect(affordable).toHaveText('0 stars');
+  await expect(shortage).toHaveText('0');
+  await expect(page.locator('#events-list')).toContainText('Future shards');
+});
+
+test('invalid inventory never displays zero-based dependent maximums', async ({ page }) => {
+  await page.goto('./');
+  await page.getByLabel('Racer Shards in inventory').fill('23');
+  const outputs = page.locator('#shard-progress, #shard-progress-coins, #affordable-progress');
+  for (const currentStars of [0, 6]) {
+    await choose(page, 'currentStars', currentStars);
+    const potential = await page.locator('#shard-progress').innerText();
+    for (const invalid of ['-1', '+1', '1.5', '1,000', '1e2', '9007199254740992']) {
+      await page.getByLabel('Tune Coins in inventory').fill(invalid);
+      await expect(page.locator('#tune-coin-error')).toBeVisible();
+      await expect(outputs).toHaveText([potential, 'Enter a valid Tune Coin balance.', 'Enter a valid Tune Coin balance.']);
+      await expect(page.locator('#inventory-announcement')).toContainText('Enter a valid Tune Coin balance.');
+      await page.getByLabel('Racer Shards in inventory').fill(invalid);
+      await expect(page.locator('#balance-error')).toBeVisible();
+      await expect(page.locator('#tune-coin-error')).toBeVisible();
+      await expect(outputs).toHaveText(Array(3).fill('Enter a valid Racer Shard balance.'));
+      await expect(page.locator('#inventory-announcement')).toContainText('Enter a valid Racer Shard balance.');
+      await page.getByLabel('Tune Coins in inventory').fill('0');
+      await expect(outputs).toHaveText(Array(3).fill('Enter a valid Racer Shard balance.'));
+      await page.getByLabel('Racer Shards in inventory').fill('23');
+      await expect(page.locator('#shard-progress')).toHaveText(potential);
+    }
+  }
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+for (const tuneCoinBalance of ['1400', '1.5']) {
+  test(`inventory maximum recomputes from update snapshot with coins ${tuneCoinBalance}`, async ({ page }) => {
+    await page.addInitScript(coins => sessionStorage.setItem('speedstorm:update-fields', JSON.stringify({
+      currentStars: 2, completedSteps: 3, targetStars: 0, targetSteps: 0, balance: '23', tuneCoinBalance: coins,
+    })), tuneCoinBalance);
+    await page.goto('./');
+    await expect(page.locator('#shard-progress')).toHaveText('3 stars + 1/5 Star Fragments toward the 4th star');
+    await expect(page.locator('#shard-progress-coins')).toHaveText(tuneCoinBalance === '1400' ? '900' : 'Enter a valid Tune Coin balance.');
+    await expect(page.locator('#affordable-progress')).toHaveText(tuneCoinBalance === '1400' ? '3 stars' : 'Enter a valid Tune Coin balance.');
+    await expect(page.locator('input[name="targetStars"][value="0"]')).toBeChecked();
+    expect(await page.evaluate(() => sessionStorage.getItem('speedstorm:update-fields'))).toBeNull();
+  });
+}
+
+test('inventory potential calculates offline from restored cache', async ({ page, context }) => {
+  await page.goto('./');
+  await readyOffline(page);
+  await context.setOffline(true);
+  await page.reload();
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 3);
+  await page.getByLabel('Racer Shards in inventory').fill('23');
+  await page.getByLabel('Tune Coins in inventory').fill('1400');
+  await expect(page.locator('#shard-progress')).toHaveText('3 stars + 1/5 Star Fragments toward the 4th star');
+  await expect(page.locator('#shard-progress-coins')).toHaveText('900');
+  await expect(page.locator('#affordable-progress')).toHaveText('3 stars');
 });
 
 test('MPL projection excludes claimed milestones, validates edits, and resets', async ({ page }) => {
