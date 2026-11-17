@@ -1,6 +1,6 @@
 import { activeEvents, EVENTS_KEY, loadEvents, localDate, nextLocalMidnight, saveEvents, validateEvent, type PlannedEvent } from './events';
 
-export function setupEvents(onChange: () => void): () => PlannedEvent[] {
+export function setupEvents(onChange: () => void, canSync = () => true) {
   const form = document.querySelector<HTMLFormElement>('#event-form')!;
   const name = document.querySelector<HTMLInputElement>('#event-name')!;
   const shards = document.querySelector<HTMLInputElement>('#event-shards')!;
@@ -71,6 +71,7 @@ export function setupEvents(onChange: () => void): () => PlannedEvent[] {
             submit.textContent = 'Save event';
             document.getElementById('event-editor-heading')!.textContent = 'Edit event';
             name.focus();
+            onChange();
           } else {
             events = events.filter(item => item.id !== event.id);
             if (editing === event.id) clearEditor();
@@ -123,11 +124,13 @@ export function setupEvents(onChange: () => void): () => PlannedEvent[] {
     name.focus();
     document.getElementById('event-announcement')!.textContent = `${value.name} added or updated in this tab.`;
   });
-  cancel.addEventListener('click', () => { clearEditor(); name.focus(); });
+  cancel.addEventListener('click', () => { clearEditor(); name.focus(); onChange(); });
+  form.addEventListener('input', () => { cancel.hidden = false; onChange(); });
   window.addEventListener('focus', refresh);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   window.addEventListener('storage', event => {
     if (event.key !== EVENTS_KEY && event.key !== null) return;
+    if (!canSync()) return;
     const loaded = loadEvents();
     if (loaded.readable) events = loaded.events;
     saved = loaded.saved;
@@ -135,5 +138,26 @@ export function setupEvents(onChange: () => void): () => PlannedEvent[] {
   });
   render();
   timer = setTimeout(refresh, nextLocalMidnight().getTime() - Date.now());
-  return () => activeEvents(events);
+  return {
+    get: () => activeEvents(events).map(event => ({ ...event })),
+    replace(values: PlannedEvent[]) {
+      events = activeEvents(values).map(event => ({ ...event }));
+      clearEditor();
+      persist();
+      refresh();
+    },
+    editor: () => ({ editing, name: name.value, shards: shards.value, end: end.value }),
+    hasUncommittedEdit: () => editing !== null || Boolean(name.value || shards.value || end.value),
+    restoreEditor(value: { editing: string | null; name: string; shards: string; end: string }) {
+      clearEditor();
+      editing = typeof value.editing === 'string' && events.some(event => event.id === value.editing) ? value.editing : null;
+      name.value = typeof value.name === 'string' ? value.name : '';
+      shards.value = typeof value.shards === 'string' ? value.shards : '';
+      end.value = typeof value.end === 'string' ? value.end : '';
+      cancel.hidden = !editing && !name.value && !shards.value && !end.value;
+      submit.textContent = editing ? 'Save event' : 'Add event';
+      document.getElementById('event-editor-heading')!.textContent = editing ? 'Edit event' : 'Add an event';
+      onChange();
+    },
+  };
 }

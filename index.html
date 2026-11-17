@@ -180,6 +180,40 @@
         <p class="sr-only" id="result-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
         <noscript><p class="noscript">Enable JavaScript to use the calculator. Each star takes 5 Star Fragments. Season 22 costs per star: 15, 25, 35, 45, 65 and 75 Racer Shards; 1,500, 2,500, 3,500, 4,500, 6,500 and 7,500 Tune Coins.</p></noscript>
 
+        <section class="events-section saved-section" aria-labelledby="saved-heading">
+          <div class="panel-heading"><h2 id="saved-heading">Saved calculations</h2><div class="event-actions"><button type="button" id="calculation-new">New calculation</button></div></div>
+          <p class="field-hint" id="calculation-storage-note">Save explicitly to revisit a goal. Stored only in this browser; clearing site data removes saved calculations.</p>
+          <div class="event-fields calculation-fields"><div>
+            <label for="calculation-name">Calculation name</label>
+            <input id="calculation-name" type="text" maxlength="100" aria-describedby="calculation-storage-note calculation-error" placeholder="Lightning McQueen — 4 Stars" autocomplete="off" />
+          </div></div>
+          <div class="event-actions calculation-actions">
+            <button type="button" id="calculation-save">Save calculation</button>
+            <button type="button" id="calculation-copy" hidden>Save as new</button>
+          </div>
+          <p class="field-note" id="calculation-status" role="status" aria-live="polite">New calculation</p>
+          <p class="field-error" id="calculation-error" role="alert" hidden></p>
+          <p class="field-note" id="calculations-empty">No saved calculations yet.</p>
+          <ul class="events-list" id="calculations-list" aria-label="Saved calculations"></ul>
+        </section>
+        <dialog id="calculation-guard" aria-labelledby="calculation-guard-heading" aria-describedby="calculation-guard-note">
+          <h2 id="calculation-guard-heading">Unsaved changes</h2>
+          <p id="calculation-guard-note">Save your working calculation before continuing?</p>
+          <div class="event-actions">
+            <button type="button" id="calculation-guard-save">Save</button>
+            <button type="button" id="calculation-guard-discard">Discard</button>
+            <button type="button" id="calculation-guard-cancel" autofocus>Cancel</button>
+          </div>
+        </dialog>
+        <dialog id="calculation-delete-dialog" aria-labelledby="calculation-delete-heading" aria-describedby="calculation-delete-name">
+          <h2 id="calculation-delete-heading">Delete calculation</h2>
+          <p id="calculation-delete-name"></p>
+          <div class="event-actions">
+            <button type="button" id="calculation-delete-confirm">Delete</button>
+            <button type="button" id="calculation-delete-cancel" autofocus>Cancel</button>
+          </div>
+        </dialog>
+
         <section class="events-section" aria-labelledby="events-heading">
           <h2 id="events-heading">Events</h2>
           <p class="field-hint" id="events-help">Plan rewards still to collect for this Racer.</p>

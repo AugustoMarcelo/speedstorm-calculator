@@ -330,3 +330,11 @@ footer { border-top: 1px solid var(--line); padding-block: 23px 30px; display: f
 .mpl-target-milestone { margin-block: 8px; font-weight: 600; }
 .mpl-target-marker { display: block; color: var(--yellow); }
 #mpl-no-rewards { padding-bottom: 12px; }
+
+.calculation-fields { grid-template-columns: minmax(0, 1fr); margin-top: 20px; max-width: 560px; }
+.calculation-actions { margin-top: 16px; }
+#calculation-save { background: var(--cyan); color: var(--bg); font-weight: 600; }
+.saved-section time { display: block; color: var(--muted); font-size: 12px; margin-top: 8px; }
+dialog { color: #edf4fa; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 24px; max-width: min(480px, calc(100% - 32px)); }
+dialog::backdrop { background: #020b14cc; }
+dialog p { margin-block: 16px; line-height: 1.5; overflow-wrap: anywhere; }
