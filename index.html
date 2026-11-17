@@ -43,12 +43,12 @@
             <div class="panel-heading"><h2>Plan your next upgrade</h2><button type="reset" class="reset-button">Reset</button></div>
             <fieldset class="field-group">
               <legend>Current stars</legend>
-              <p class="field-hint" id="current-hint">How many stars has your Racer unlocked?</p>
+              <p class="field-hint" id="current-hint">Full stars already unlocked.</p>
               <div class="choices star-choices" id="current-stars" role="group" aria-describedby="current-hint"></div>
             </fieldset>
             <fieldset class="field-group" id="steps-fieldset">
               <legend>Star Fragments on next star</legend>
-              <p class="field-hint" id="steps-hint">Star Fragments already unlocked. The 5th fragment upgrades your Racer.</p>
+              <p class="field-hint" id="steps-hint">5 fragments unlock the next star.</p>
               <div class="steps-line"><div class="choices step-choices" id="completed-steps" role="group" aria-describedby="steps-hint"></div><span class="steps-total" aria-hidden="true">/ 5 Star Fragments</span></div>
               <p class="field-note" id="step-note">No Star Fragments unlocked toward your next star.</p>
             </fieldset>
@@ -58,81 +58,121 @@
             </fieldset>
             <fieldset class="field-group" id="target-steps-fieldset">
               <legend>Target Star Fragments</legend>
-              <p class="field-hint" id="target-steps-hint">Progress toward the star after your target. Choose 0 to stop at a full star.</p>
+              <p class="field-hint" id="target-steps-hint">Choose 0 to stop at a full star.</p>
               <div class="steps-line"><div class="choices step-choices" id="target-steps" role="group" aria-describedby="target-steps-hint"></div><span class="steps-total" aria-hidden="true">/ 5 Star Fragments</span></div>
               <p class="field-note" id="target-step-note">Stop at 1 star.</p>
             </fieldset>
             <div class="field-group balances-group">
               <div class="balance-entry">
                 <label for="balance">Racer Shards in inventory</label>
-                <p class="field-hint" id="balance-hint">Shards you have available to spend on upgrades.</p>
+                <p class="field-hint" id="balance-hint">Available to spend.</p>
                 <div class="balance-input"><img src="./icons/racer-shard.png" alt="" width="24" height="24" /><input id="balance" name="balance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="balance-hint balance-error" /><span aria-hidden="true">Racer Shards</span></div>
                 <p class="field-error" id="balance-error" hidden>Enter a whole number of Racer Shards from 0 to 9,007,199,254,740,991, without separators.</p>
               </div>
               <div class="balance-entry">
                 <label for="tune-coin-balance">Tune Coins in inventory</label>
-                <p class="field-hint" id="tune-coin-hint">Tune Coins you have available to spend on upgrades.</p>
+                <p class="field-hint" id="tune-coin-hint">Available to spend.</p>
                 <div class="balance-input"><img src="./icons/tune-coin.png" alt="" width="24" height="24" /><input id="tune-coin-balance" name="tuneCoinBalance" type="text" inputmode="numeric" value="0" autocomplete="off" spellcheck="false" aria-describedby="tune-coin-hint tune-coin-error" /><span aria-hidden="true">Tune Coins</span></div>
                 <p class="field-error" id="tune-coin-error" hidden>Enter a whole number of Tune Coins from 0 to 9,007,199,254,740,991, without separators.</p>
               </div>
             </div>
             <div class="field-group mpl-entry balance-entry">
               <label for="current-mpl">Current MPL</label>
-              <p class="field-hint" id="mpl-hint">Optional Solo Multiplayer level, from 0 to 40. Leave blank to disable the projection.</p>
+              <p class="field-hint" id="mpl-hint">Optional · Solo Multiplayer level, 0–40.</p>
               <div class="balance-input"><input id="current-mpl" name="currentMpl" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="mpl-hint mpl-claimed-note mpl-error" /><span aria-hidden="true">MPL / 40</span></div>
               <p class="field-error" id="mpl-error" hidden>Enter a whole number from 0 to 40, without signs or separators, or leave blank.</p>
-              <p class="field-note" id="mpl-claimed-note">Rewards through this MPL are assumed already accounted for. If your rank has reset, enter the highest MPL whose rewards you previously claimed.</p>
+              <details class="help-details"><summary>Which MPL should I enter? <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><p class="field-note" id="mpl-claimed-note">Enter the highest MPL whose rewards you already claimed, including before a rank reset. Leave blank to disable the projection.</p></details>
             </div>
           </form>
 
           <section class="result-panel" aria-labelledby="result-heading">
             <div class="result-topline"><h2 id="result-heading">Upgrade summary</h2><span class="result-target" id="result-target"><svg aria-hidden="true"><use href="#icon-star"/></svg><span>1st Star</span></span></div>
-            <div class="result-number-area">
-              <p id="result-label" class="result-label">Racer Shards still needed</p>
-              <div class="result-value"><img class="result-shard" src="./icons/racer-shard.png" alt="" width="36" height="46" /><span id="missing">15</span></div>
-              <p id="result-description" class="result-description">Racer Shards to unlock your target</p>
-            </div>
-            <p id="result-message" class="result-message">Every Star Fragment brings your Racer closer.</p>
-            <dl class="cost-summary">
-              <div><dt>Total Racer Shards</dt><dd id="total">15</dd></div>
-              <div><dt>Inventory Racer Shards used</dt><dd id="applied-balance">− 0</dd></div>
-              <div><dt>Planned event Racer Shards</dt><dd id="applied-events">− 0</dd></div>
-              <div class="remaining-row"><dt id="remaining-label">Racer Shards still needed</dt><dd id="remaining">15</dd></div>
-              <div class="currency-start"><dt>Total Tune Coins</dt><dd id="tune-coins-total">1,500</dd></div>
-              <div><dt>Inventory Tune Coins used</dt><dd id="tune-coins-applied">− 0</dd></div>
-              <div class="remaining-row"><dt>Tune Coins still needed</dt><dd id="tune-coins-remaining">1,500</dd></div>
-            </dl>
-            <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already reached this target.</p></div>
-            <section class="planning-section" aria-labelledby="affordable-heading">
-              <h3 id="affordable-heading">Maximum upgrade from inventory</h3>
+            <section class="inventory-outlook" aria-labelledby="affordable-heading">
+              <h3 id="affordable-heading">What you can unlock now</h3>
               <dl class="inventory-upgrade-list">
-                <div><dt>Maximum with your Racer Shards</dt><dd class="planning-value" id="shard-progress"></dd></div>
-                <div><dt>Tune Coins still needed to reach this upgrade</dt><dd id="shard-progress-coins"></dd></div>
-                <div><dt>Affordable now with both currencies</dt><dd id="affordable-progress"></dd></div>
+                <div class="affordable-destination"><dt>With both currencies</dt><dd id="affordable-progress"></dd></div>
               </dl>
-              <p class="field-note">Based on current progress and owned inventory. Independent of your selected target. Event and MPL rewards are excluded.</p>
+              <p id="inventory-upgrade-status" class="field-note"></p>
+              <div id="first-star-progress" class="first-star-progress" role="img" aria-label="First star progress"><span>Unlock first star</span><div id="first-star-fragments" class="track-fragments"></div></div>
+              <ol id="progression-track" class="progression-track" aria-label="Upgrade progression"></ol>
+              <div class="track-legend" aria-hidden="true">
+                <span><i class="fragment-current"></i>Unlocked</span><span><i class="fragment-affordable"></i>Available now</span>
+                <span><i class="fragment-potential"></i>Shards only</span><span><i class="legend-target"></i>Target</span>
+              </div>
+              <p id="track-current" class="field-note"></p>
+              <dl class="inventory-upgrade-list shard-outlook">
+                <div><dt>With your Racer Shards</dt><dd class="planning-value" id="shard-progress"></dd></div>
+                <div class="potential-coins"><dt>Extra Tune Coins needed</dt><dd id="shard-progress-coins"></dd></div>
+              </dl>
+              <p class="field-note">Inventory only · independent of your target.</p>
               <p id="inventory-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
             </section>
-            <section class="planning-section" aria-labelledby="next-heading">
-              <h3 id="next-heading">Next upgrade comparison</h3>
-              <p id="next-upgrades-max" hidden>Maximum upgrade reached.</p>
-              <dl class="next-upgrade-list" id="next-upgrade-list">
-                <div><dt>Next Star Fragment</dt><dd><p id="next-fragment-cost"></p><p class="field-note" id="next-fragment-shortage"></p></dd></div>
-                <div><dt>Next full Star</dt><dd><p id="next-star-cost"></p><p class="field-note" id="next-star-shortage"></p></dd></div>
-              </dl>
+            <section class="target-resources" aria-labelledby="resources-heading">
+              <h3 id="resources-heading">Resources for your target</h3>
+              <p class="field-note">Inventory / cost</p>
+              <div class="resource-coverage">
+                <div class="resource-heading"><span><img src="./icons/racer-shard.png" alt="" width="22" height="22" />Racer Shards</span><strong id="shards-coverage-status"></strong></div>
+                <div class="resource-meter" id="shards-meter" role="meter" aria-label="Racer Shards for target" aria-valuemin="0" aria-valuenow="0" aria-valuemax="15"><span></span></div>
+                <p class="coverage-amount" id="shards-coverage-amount"></p>
+              </div>
+              <div class="resource-coverage">
+                <div class="resource-heading"><span><img src="./icons/tune-coin.png" alt="" width="22" height="22" />Tune Coins</span><strong id="coins-coverage-status"></strong></div>
+                <div class="resource-meter" id="coins-meter" role="meter" aria-label="Tune Coins for target" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1500"><span></span></div>
+                <p class="coverage-amount" id="coins-coverage-amount"></p>
+              </div>
             </section>
-            <section class="planning-section" id="mpl-projection" aria-labelledby="mpl-heading" hidden>
-              <h3 id="mpl-heading">MPL reward projection</h3>
-              <dl class="cost-summary">
-                <div><dt>Racer Shards still earnable from MPL</dt><dd id="mpl-remaining"></dd></div>
-                <div><dt>Shards still needed after MPL rewards</dt><dd id="projected-shortage"></dd></div>
-              </dl>
-              <p class="field-note">Projection through MPL 40, after inventory and planned event rewards. Collect the planned event rewards to follow this projection. Future rewards are separate from inventory; Tune Coin shortages and current affordability stay based on what you have now.</p>
-              <p class="planning-value" id="mpl-target"></p>
-              <details id="mpl-milestones"><summary>Remaining reward milestones <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><ul id="mpl-milestone-list"></ul><p class="field-note" id="mpl-no-rewards" hidden>No Racer Shard milestones remain through MPL 40.</p></details>
-              <a class="source-link" id="mpl-source-link" href="https://speedstorm.fandom.com/wiki/Game_modes/Ranked_Multiplayer" target="_blank" rel="noopener noreferrer">Wiki reward schedule: Seasons 6–17<span class="sr-only"> (opens in a new tab)</span></a>
-              <p class="field-note" id="mpl-lookup-date"></p>
-              <p class="field-note">Fixed planning model for every Racer, not a verified Season 22 reward table. Counts only the listed Racer Shard milestones; random rewards, leaderboard rewards, and multiplayer Tune Coins are excluded.</p>
+            <details class="upgrade-details" id="upgrade-details">
+              <summary>Upgrade costs and next steps <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary>
+              <div class="result-number-area">
+                <p id="result-label" class="result-label">Racer Shards still needed</p>
+                <div class="result-value"><img class="result-shard" src="./icons/racer-shard.png" alt="" width="36" height="46" /><span id="missing">15</span></div>
+                <p id="result-description" class="result-description">Racer Shards to unlock your target</p>
+              </div>
+              <p id="result-message" class="result-message">Every Star Fragment brings your Racer closer.</p>
+              <table class="target-cost-table">
+                <caption class="sr-only">Target upgrade resources</caption>
+                <thead><tr><th scope="col"><span class="sr-only">Cost</span></th><th scope="col"><img src="./icons/racer-shard.png" width="22" height="22" alt="Racer Shards"/></th><th scope="col"><img src="./icons/tune-coin.png" width="22" height="22" alt="Tune Coins"/></th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Total</th><td id="total">15</td><td id="tune-coins-total">1,500</td></tr>
+                  <tr><th scope="row">Inventory</th><td id="applied-balance">− 0</td><td id="tune-coins-applied">− 0</td></tr>
+                  <tr><th scope="row">Events</th><td id="applied-events">− 0</td><td>—</td></tr>
+                  <tr class="target-cost-remaining"><th scope="row"><span id="remaining-label" class="sr-only">Racer Shards still needed</span>Still needed</th><td id="remaining">15</td><td id="tune-coins-remaining">1,500</td></tr>
+                </tbody>
+              </table>
+              <div class="breakdown"><h3>Upgrade breakdown</h3><ol id="breakdown-list"></ol><p id="empty-breakdown" hidden>You’ve already reached this target.</p></div>
+              <section class="planning-section" aria-labelledby="next-heading">
+                <h3 id="next-heading">Next upgrade comparison</h3>
+                <p id="next-upgrades-max" hidden>Maximum upgrade reached.</p>
+                <dl class="next-upgrade-list" id="next-upgrade-list">
+                  <div><dt>Next Star Fragment</dt><dd><p class="sr-only" id="next-fragment-cost"></p><p class="currency-pair" aria-hidden="true" id="next-fragment-visual-cost"></p><p class="sr-only" id="next-fragment-shortage"></p><div class="upgrade-shortage"><span>Missing</span><p class="currency-pair" aria-hidden="true" id="next-fragment-visual-shortage"></p></div></dd></div>
+                  <div><dt>Next full Star</dt><dd><p class="sr-only" id="next-star-cost"></p><p class="currency-pair" aria-hidden="true" id="next-star-visual-cost"></p><p class="sr-only" id="next-star-shortage"></p><div class="upgrade-shortage"><span>Missing</span><p class="currency-pair" aria-hidden="true" id="next-star-visual-shortage"></p></div></dd></div>
+                </dl>
+              </section>
+            </details>
+            <section class="future-rewards" id="future-rewards" aria-labelledby="future-heading" hidden>
+              <h3 id="future-heading">Rewards still to collect</h3>
+              <p class="field-note">Collect these rewards before upgrading.</p>
+              <div id="event-projection" hidden>
+                <h4>Planned event rewards</h4>
+                <dl class="projection-metrics">
+                  <div><dt>Shards from events</dt><dd id="event-projection-shards"></dd></div>
+                  <div><dt>Still missing</dt><dd id="event-projection-shortage"></dd></div>
+                </dl>
+              </div>
+              <section class="planning-section" id="mpl-projection" aria-labelledby="mpl-heading" hidden>
+                <h3 id="mpl-heading">MPL reward projection</h3>
+                <dl class="projection-metrics">
+                  <div><dt>Shards from MPL</dt><dd id="mpl-remaining"></dd></div>
+                  <div><dt>Still missing</dt><dd id="projected-shortage"></dd></div>
+                </dl>
+                <div class="mpl-destination" aria-hidden="true"><span id="mpl-destination-label"></span><strong id="mpl-destination-value"></strong><span id="mpl-destination-caption"></span></div>
+                <p class="sr-only" id="mpl-target"></p>
+                <details id="mpl-milestones"><summary>Remaining reward milestones <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><ul id="mpl-milestone-list"></ul><p class="field-note" id="mpl-no-rewards" hidden>No Racer Shard milestones remain through MPL 40.</p></details>
+                <details class="help-details"><summary>Reward model and source <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><p class="field-note">Projection through MPL 40, after inventory and planned events. Future rewards do not change current affordability or Tune Coin shortages.</p>
+                <a class="source-link" id="mpl-source-link" href="https://speedstorm.fandom.com/wiki/Game_modes/Ranked_Multiplayer" target="_blank" rel="noopener noreferrer">Wiki reward schedule: Seasons 6–17<span class="sr-only"> (opens in a new tab)</span></a>
+                <p class="field-note" id="mpl-lookup-date"></p>
+                <p class="field-note">Fixed planning model for every Racer, not a verified Season 22 reward table. Counts only the listed Racer Shard milestones; random rewards, leaderboard rewards, and multiplayer Tune Coins are excluded.</p></details>
+              </section>
             </section>
             <div class="result-bottom"><span class="checkered-flag" aria-hidden="true"></span><span id="route-caption">From the starting line to the 1st star</span></div>
           </section>
@@ -142,11 +182,11 @@
 
         <section class="events-section" aria-labelledby="events-heading">
           <h2 id="events-heading">Events</h2>
-          <p class="field-hint" id="events-help">For the current Racer only: plan Racer Shards still to collect, separate from inventory. As you collect rewards, reduce the event amount and update inventory to avoid counting shards twice.</p>
-          <p class="field-hint">End dates include the whole day in your device’s local timezone. Expired events are removed without crediting inventory. Reset keeps events; remove them explicitly when changing Racer.</p>
+          <p class="field-hint" id="events-help">Plan rewards still to collect for this Racer.</p>
+          <details class="help-details"><summary>How event planning works <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><ul class="help-list"><li>As you collect shards, reduce the event amount and update inventory.</li><li>End dates include the full local day. Expired events are removed without adding shards to inventory.</li><li>Reset keeps events. Remove them when switching Racer.</li></ul></details>
           <p id="events-storage" class="field-error" role="status" hidden>Event changes cannot be saved on this device. Events remain usable in this tab, but may be lost on reload.</p>
           <ul id="events-list" class="events-list" aria-label="Planned events"></ul>
-          <p id="events-empty" class="field-hint">No events planned. Add rewards you still expect to collect.</p>
+          <p id="events-empty" class="field-hint">No planned rewards yet.</p>
           <form id="event-form" novalidate aria-describedby="events-help">
             <h3 id="event-editor-heading">Add an event</h3>
             <div class="event-fields">
@@ -162,7 +202,7 @@
         <section class="explanation" id="how-it-works" aria-labelledby="explanation-heading">
           <div class="explanation-intro"><h2 id="explanation-heading">Less math. <br>More racing.</h2><p>The same progression rules apply to every Racer.</p></div>
           <div class="explanation-content">
-            <p>Each star takes <strong>5 Star Fragments</strong> to unlock. Every fragment costs Racer Shards and Tune Coins, depending on the star. We add up the Star Fragments to your target, subtract your Racer’s progress, then subtract the Shards and Tune Coins in your inventory.</p>
+            <ol class="how-steps"><li><strong>Choose your progress</strong><span>Current stars and unlocked fragments.</span></li><li><strong>Set your target</strong><span>A full star or part of the next one.</span></li><li><strong>Add your inventory</strong><span>See available upgrades and what is missing.</span></li></ol>
             <details><summary>See upgrade costs <svg aria-hidden="true"><use href="#icon-plus"/></svg></summary><div class="table-wrap"><table><caption>Season <span data-season>22</span> costs per full Star</caption><thead><tr><th scope="col">Star upgrade</th><th scope="col">Total Racer Shards</th><th scope="col">Total Tune Coins</th></tr></thead><tbody id="progression-table"></tbody></table></div></details>
             <a class="source-link" id="source-link" href="https://disneyspeedstorm.com/news/disney-speedstorm-racer-progression-update" target="_blank" rel="noopener noreferrer">Official progression rules <svg aria-hidden="true"><use href="#icon-external"/></svg><span class="sr-only"> (opens in a new tab)</span></a><span class="rule-date" id="rule-date"></span>
           </div>

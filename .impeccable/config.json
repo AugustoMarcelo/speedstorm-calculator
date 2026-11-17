@@ -21,6 +21,15 @@
         ],
         "createdAt": "2026-10-02T13:31:54.341Z",
         "reason": "Codex verified false positive: src/style.css sets .skip-link color to var(--bg), defined as #091724 in the documented palette; the static HTML scan reports black instead of the externally styled value."
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/style.css"
+        ],
+        "createdAt": "2026-11-17T18:17:36.353Z",
+        "reason": "Agent review: the only matching element is .fragment-affordable, an 8px progression segment rather than a card. Its bottom cutout intentionally distinguishes available fragments from already unlocked fragments without relying on color."
       }
     ]
   }

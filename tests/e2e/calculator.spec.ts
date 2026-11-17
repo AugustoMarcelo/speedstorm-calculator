@@ -19,6 +19,67 @@ async function addEvent(page: Page, name = 'Season finale', shards = '4', end = 
 
 test.beforeEach(async ({ request }) => { await request.get('/__test/v1'); });
 
+test('planning results stay visible while explanations start collapsed', async ({ page }) => {
+  await page.goto('./');
+  await page.getByLabel('Racer Shards in inventory').fill('2');
+  await page.getByLabel('Current MPL', { exact: true }).fill('7');
+  await expect(page.locator('#mpl-destination-value')).toHaveText('MPL 23');
+  await expect(page.locator('#mpl-destination-caption')).toHaveText('16 earned / 13 needed');
+  await expect(page.locator('#mpl-source-link')).toBeHidden();
+  await expect(page.locator('#mpl-claimed-note')).toBeHidden();
+  await page.getByText('Reward model and source', { exact: true }).click();
+  await expect(page.locator('#mpl-source-link')).toBeVisible();
+  await addEvent(page, 'Daily race', '3');
+  await expect(page.locator('#event-projection-shards')).toHaveText('3');
+  await expect(page.locator('#event-projection-shortage')).toHaveText('10');
+  await expect(page.locator('#mpl-destination-value')).toHaveText('MPL 18');
+  await expect(page.locator('#events-list .event-reward strong')).toHaveText('3');
+  await expect(page.getByText('Reset keeps events. Remove them when switching Racer.', { exact: true })).toBeHidden();
+});
+
+test('visual progression separates owned progress, affordability, and shard potential', async ({ page }) => {
+  await page.goto('./');
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'completedSteps', 3);
+  await choose(page, 'targetStars', 3);
+  await choose(page, 'targetSteps', 1);
+  await page.getByLabel('Racer Shards in inventory').fill('23');
+  await page.getByLabel('Tune Coins in inventory').fill('1400');
+  const track = page.getByRole('list', { name: 'Upgrade progression' });
+  await expect(track.locator('.fragment-current')).toHaveCount(8);
+  await expect(track.locator('li').last().locator('.track-fragments')).toHaveCount(0);
+  await expect(track.locator('li').nth(1).locator('.fragment-affordable')).toHaveCount(2);
+  await expect(track.locator('.fragment-affordable')).toHaveCount(2);
+  await expect(track.locator('.fragment-potential')).toHaveCount(1);
+  await expect(track.locator('.fragment-target')).toHaveCount(1);
+  await expect(page.getByRole('meter', { name: 'Racer Shards for target' })).toHaveAttribute('aria-valuenow', '23');
+  await expect(page.getByRole('meter', { name: 'Tune Coins for target' })).toHaveAttribute('aria-valuenow', '1400');
+  await expect(page.locator('#coins-coverage-status')).toHaveText('900 still needed');
+  await choose(page, 'targetStars', 4);
+  await addEvent(page, 'Future reward', '100');
+  await page.getByLabel('Current MPL', { exact: true }).fill('0');
+  await expect(track.locator('.fragment-affordable')).toHaveCount(2);
+  await expect(track.locator('.fragment-potential')).toHaveCount(1);
+  await expect(page.locator('#coins-coverage-status')).toHaveText('4,500 still needed');
+  await expect(page.locator('#event-projection-shortage')).toHaveText('0');
+  await expect(page.locator('#future-rewards')).toBeVisible();
+  await page.getByLabel('Tune Coins in inventory').fill('invalid');
+  await expect(track.locator('.fragment-affordable')).toHaveCount(0);
+  await expect(track.locator('.fragment-potential')).toHaveCount(3);
+  await expect(page.getByRole('meter', { name: 'Tune Coins for target' })).toBeHidden();
+  await page.getByLabel('Racer Shards in inventory').fill('invalid');
+  await expect(track.locator('.fragment-potential')).toHaveCount(0);
+  await expect(track.locator('.fragment-current')).toHaveCount(8);
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(track.locator('.fragment-locked')).toHaveCount(25);
+  await expect(page.locator('#first-star-fragments .fragment-locked')).toHaveCount(5);
+  await expect(page.locator('#shards-coverage-status')).toHaveText('15 still needed');
+  await choose(page, 'currentStars', 6);
+  await expect(track.locator('.fragment-current')).toHaveCount(25);
+  await expect(page.locator('#first-star-progress')).toBeHidden();
+  await expect(page.locator('#inventory-upgrade-status')).toHaveText('All 6 stars unlocked. Your Racer is fully upgraded.');
+});
+
 test('calculates examples, reports errors, and resets', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('#missing')).toHaveText('15');
@@ -69,6 +130,7 @@ test('previous targets cost zero and changing stars resets progress', async ({ p
 
 test('partial targets calculate costs and distinguish reached progress from available inventory', async ({ page }) => {
   await page.goto('./');
+  await page.locator('#upgrade-details summary').click();
   const targetGroup = page.getByRole('group', { name: 'Target Star Fragments', exact: true });
   await expect(targetGroup).toBeVisible();
   await choose(page, 'currentStars', 2);
@@ -220,6 +282,7 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
   await choose(page, 'completedSteps', 3);
   await page.getByLabel('Racer Shards in inventory').fill('23');
   await page.getByLabel('Tune Coins in inventory').fill('1400');
+  await page.locator('#upgrade-details > summary').click();
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -227,9 +290,9 @@ test('responsive layout has no horizontal overflow', async ({ page }) => {
       const breakdown = document.querySelector('.breakdown')!.getBoundingClientRect();
       const inventory = document.querySelector('[aria-labelledby="affordable-heading"]')!.getBoundingClientRect();
       const next = document.querySelector('[aria-labelledby="next-heading"]')!.getBoundingClientRect();
-      return { breakdownEnd: breakdown.bottom, inventoryStart: inventory.top, inventoryEnd: inventory.bottom, nextStart: next.top };
+      return { breakdownStart: breakdown.top, inventoryEnd: inventory.bottom, nextStart: next.top };
     });
-    expect(positions.inventoryStart).toBeGreaterThanOrEqual(positions.breakdownEnd);
+    expect(positions.breakdownStart).toBeGreaterThanOrEqual(positions.inventoryEnd);
     expect(positions.nextStart).toBeGreaterThanOrEqual(positions.inventoryEnd);
     expect(parseFloat(await page.locator('#shard-progress').evaluate(el => getComputedStyle(el).fontSize)))
       .toBeLessThan(parseFloat(await page.locator('#missing').evaluate(el => getComputedStyle(el).fontSize)));
@@ -470,7 +533,7 @@ test('invalid inventory never displays zero-based dependent maximums', async ({ 
     for (const invalid of ['-1', '+1', '1.5', '1,000', '1e2', '9007199254740992']) {
       await page.getByLabel('Tune Coins in inventory').fill(invalid);
       await expect(page.locator('#tune-coin-error')).toBeVisible();
-      await expect(outputs).toHaveText([potential, 'Enter a valid Tune Coin balance.', 'Enter a valid Tune Coin balance.']);
+      await expect(outputs).toHaveText(['Enter a valid Tune Coin balance.', potential, 'Enter a valid Tune Coin balance.']);
       await expect(page.locator('#inventory-announcement')).toContainText('Enter a valid Tune Coin balance.');
       await page.getByLabel('Racer Shards in inventory').fill(invalid);
       await expect(page.locator('#balance-error')).toBeVisible();
@@ -699,7 +762,8 @@ test.describe('event planning', () => {
     await expect(page.locator('#applied-balance')).toHaveText('− 5');
     await expect(page.locator('#tune-coins-remaining')).toHaveText('1,500');
     await expect(page.locator('#result-announcement')).toContainText('After collecting event rewards');
-    await expect(page.locator('#events-list img')).toHaveCount(0);
+    await expect(page.locator('#events-list h3 img')).toHaveCount(0);
+    await expect(page.locator('#events-list .event-reward img')).toHaveCount(2);
     const bonusId = await page.evaluate(() => JSON.parse(localStorage.getItem('speedstorm:events:v1')!).find((event: { name: string }) => event.name === 'Bonus').id);
     await page.getByRole('button', { name: 'Edit Bonus', exact: true }).click();
     await page.getByLabel('Racer Shards still obtainable', { exact: true }).fill('10');

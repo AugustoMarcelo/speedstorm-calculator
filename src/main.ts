@@ -11,6 +11,7 @@ import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 import { eventContribution } from './events';
 import { setupEvents } from './events-ui';
+import { renderProgressTrack, renderResourceCoverage } from './progress-ui';
 
 const form = document.querySelector<HTMLFormElement>('#calculator-form')!;
 const balance = document.querySelector<HTMLInputElement>('#balance')!;
@@ -25,6 +26,10 @@ const snapshotKey = 'speedstorm:update-fields';
 
 function text(id: string, value: string) {
   document.getElementById(id)!.textContent = value;
+}
+
+function currencyPair(shards: number | null, coins: number | null) {
+  return `<span><img src="./icons/racer-shard.png" width="20" height="20" alt="Racer Shards"/>${shards === null ? '—' : format.format(shards)}</span><span><img src="./icons/tune-coin.png" width="20" height="20" alt="Tune Coins"/>${coins === null ? '—' : format.format(coins)}</span>`;
 }
 
 function renderChoices(id: string, name: string, first: number, last: number, selected: number, stars = false) {
@@ -94,21 +99,26 @@ function updateInventoryProgress(input: CalculatorInput, shardBalance: number | 
   let shardProgress = shardError;
   let coinShortage = shardError;
   let affordableProgressText = shardError;
+  let potential = null;
+  let affordable = null;
   if (shardBalance !== null) {
     const destination = shardLimitedProgress({ currentStars: input.currentStars, completedSteps: input.completedSteps, balance: shardBalance });
+    potential = destination;
     shardProgress = describeProgress(destination.stars, destination.steps);
     coinShortage = coinError;
     affordableProgressText = coinError;
     if (coinBalance !== null) {
       const cost = calculate({ ...input, targetStars: destination.stars, targetSteps: destination.steps, balance: shardBalance, tuneCoinBalance: coinBalance });
       coinShortage = format.format(cost.tuneCoinsMissing);
-      const affordable = affordableProgress(input);
+      affordable = affordableProgress(input);
       affordableProgressText = describeProgress(affordable.stars, affordable.steps);
     }
   }
   text('shard-progress', shardProgress);
   text('shard-progress-coins', coinShortage);
   text('affordable-progress', affordableProgressText);
+  renderProgressTrack(input, potential, affordable);
+  text('track-current', `Current: ${describeProgress(input.currentStars, input.completedSteps)}.`);
   const message = `Maximum with your Racer Shards: ${shardProgress}. Tune Coins still needed to reach this upgrade: ${coinShortage}. Affordable now with both currencies: ${affordableProgressText}. Based on current progress and owned inventory. Independent of your selected target. Event and MPL rewards are excluded.`;
   clearTimeout(inventoryAnnouncementTimer);
   inventoryAnnouncementTimer = setTimeout(() => {
@@ -159,6 +169,8 @@ function update() {
   const projected = result.appliedEventShards > 0;
   const invalidInventory = invalidShards || invalidTuneCoins;
   updateInventoryProgress(input, parsedBalance, parsedTuneCoinBalance);
+  renderResourceCoverage('shards', parsedBalance, inventoryResult.total);
+  renderResourceCoverage('coins', parsedTuneCoinBalance, inventoryResult.tuneCoinTotal);
   const next = nextUpgrades(input);
   document.getElementById('next-upgrades-max')!.hidden = !maxed;
   document.getElementById('next-upgrade-list')!.hidden = maxed;
@@ -166,8 +178,14 @@ function update() {
     if (!upgrade) continue;
     text(`${id}-cost`, `${format.format(upgrade.cost.total)} Racer Shards · ${format.format(upgrade.cost.tuneCoinTotal)} Tune Coins`);
     text(`${id}-shortage`, `Still needed: ${invalidShards ? '—' : format.format(upgrade.cost.missing)} Racer Shards · ${invalidTuneCoins ? '—' : format.format(upgrade.cost.tuneCoinsMissing)} Tune Coins`);
+    document.getElementById(`${id}-visual-cost`)!.innerHTML = currencyPair(upgrade.cost.total, upgrade.cost.tuneCoinTotal);
+    document.getElementById(`${id}-visual-shortage`)!.innerHTML = currencyPair(invalidShards ? null : upgrade.cost.missing, invalidTuneCoins ? null : upgrade.cost.tuneCoinsMissing);
   }
   const rewards = remainingMplRewards(parsedMpl ?? undefined);
+  document.getElementById('future-rewards')!.hidden = !projected && rewards === null;
+  document.getElementById('event-projection')!.hidden = !projected;
+  text('event-projection-shards', invalidShards ? '—' : format.format(result.appliedEventShards));
+  text('event-projection-shortage', invalidShards ? '—' : format.format(result.missing));
   const projection = projectedShardShortage(result.missing, parsedMpl ?? undefined);
   const mplTarget = invalidShards ? null : mplShardTarget(result.missing, parsedMpl ?? undefined);
   let mplTargetMessage = '';
@@ -181,6 +199,9 @@ function update() {
           : `${projected ? 'MPL and planned event rewards' : 'MPL rewards alone'} cannot cover your target. Even at MPL ${MPL_REWARDS.maxMpl}, you will still need ${format.format(mplTarget.deficit)} ${mplTarget.deficit === 1 ? 'Racer Shard' : 'Racer Shards'}.`;
     text('mpl-remaining', format.format(rewards.total));
     text('projected-shortage', invalidShards ? '—' : format.format(projection!));
+    text('mpl-destination-label', mplTarget?.status === 'reachable' ? 'Reach' : mplTarget?.status === 'insufficient' ? `At MPL ${MPL_REWARDS.maxMpl}` : 'Target shards');
+    text('mpl-destination-value', mplTarget === null ? 'Check inventory' : mplTarget.status === 'reachable' ? `MPL ${mplTarget.mpl}` : mplTarget.status === 'already-covered' ? 'Covered' : `${format.format(mplTarget.deficit)} missing`);
+    text('mpl-destination-caption', mplTarget?.status === 'reachable' ? `${format.format(mplTarget.cumulative)} earned / ${format.format(result.missing)} needed` : mplTarget?.status === 'already-covered' ? projected ? 'After planned events' : 'No further MPL rewards needed' : 'Racer Shards');
     let cumulative = 0;
     document.getElementById('mpl-milestone-list')!.innerHTML = rewards.milestones.map(item => {
       cumulative += item.shards;
@@ -218,7 +239,7 @@ function update() {
   text('tune-coins-applied', invalidTuneCoins ? '—' : `− ${format.format(result.appliedTuneCoinBalance)}`);
   text('tune-coins-remaining', invalidTuneCoins ? '—' : format.format(result.tuneCoinsMissing));
   document.getElementById('breakdown-list')!.innerHTML = result.breakdown.map(item =>
-    `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span>${format.format(item.cost)} <small>Racer Shards</small></span><span>${format.format(item.tuneCoinCost)} <small>Tune Coins</small></span></div></li>`).join('');
+    `<li><div class="breakdown-upgrade"><span class="breakdown-star">${item.star} ${starIcon} Star</span><span class="breakdown-detail">${item.steps} ${item.steps === 1 ? 'Star Fragment' : 'Star Fragments'}</span></div><div class="breakdown-cost"><span><img src="./icons/racer-shard.png" width="20" height="20" alt=""/>${format.format(item.cost)} <small class="sr-only">Racer Shards</small></span><span><img src="./icons/tune-coin.png" width="20" height="20" alt=""/>${format.format(item.tuneCoinCost)} <small class="sr-only">Tune Coins</small></span></div></li>`).join('');
   document.getElementById('empty-breakdown')!.hidden = !reached;
   text('route-caption', maxed ? 'Finish line: all 6 stars' : reached ? 'Target unlocked'
     : `From ${currentStars === 0 && completedSteps === 0 ? 'the starting line' : describeProgress(currentStars, completedSteps)} to ${targetDescription}`);

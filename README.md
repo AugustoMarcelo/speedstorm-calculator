@@ -57,7 +57,7 @@ Malformed saved records are ignored. If storage cannot be read or written, a vis
 
 MPL planning uses the shortage after inventory and planned event rewards. Its destination assumes those event rewards will be collected. Maximum inventory upgrades and next-upgrade comparisons use inventory only.
 
-**Maximum upgrade from inventory** appears in Upgrade summary after Upgrade breakdown and before Next upgrade comparison. **Maximum with your Racer Shards** shows the highest consecutive full Stars plus Star Fragments supported by owned shards, ignoring Tune Coins. **Tune Coins still needed to reach this upgrade** reports the cumulative coin cost to that destination minus owned coins, clamped at zero. **Affordable now with both currencies** retains the immediate affordability calculation using both balances. Both maximums ignore your selected target and uncollected event/MPL rewards, stop at 6 Stars, and never spend inventory or change your target.
+**What you can unlock now** leads Upgrade summary with immediate affordability and a six-star track. Stars 1–5 show five fragments toward the next star; star 6 is the maximum and has no fragments. A separate first-star row appears when starting at zero. Segments distinguish unlocked progress, available upgrades, and shard-only potential; an outline marks the selected target. Independent resource meters show inventory coverage for the selected target. Detailed costs, Upgrade breakdown, and Next upgrade comparison are available under **Upgrade costs and next steps**. Future event/MPL rewards appear separately under **Rewards still to collect**. **Maximum with your Racer Shards** shows the highest consecutive full Stars plus Star Fragments supported by owned shards, ignoring Tune Coins. **Tune Coins still needed to reach this upgrade** reports the cumulative coin cost to that destination minus owned coins, clamped at zero. **Affordable now with both currencies** retains the immediate affordability calculation using both balances. Both maximums ignore your selected target and uncollected event/MPL rewards, stop at 6 Stars, and never spend inventory or change your target.
 
 From 2 Stars + 3/5 Star Fragments, 23 owned shards support 3 Stars + 1/5 Star Fragments, costing 2,300 Tune Coins. With 1,400 coins, 900 more coins are needed and 3 Stars are affordable now. With zero coins, shard potential stays the same, 2,300 coins are needed, and immediate affordability stays at current progress. If shards cannot buy the next fragment, the destination is current progress and its coin shortage is zero.
 
@@ -125,7 +125,7 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 - `src/calculator.ts`: pure calculation and input validation; its existing contract remains unchanged.
 - `src/planning.ts`: shard-limited and affordable progress, next upgrade comparisons, MPL parsing and reward projections.
 - `src/mpl-rewards.ts`: fixed Seasons 6–17 Racer Shard schedule and source metadata, separate from upgrade costs.
-- `src/main.ts` and `src/style.css`: interface.
+- `src/main.ts`, `src/progress-ui.ts`, and `src/style.css`: interface, visual progression track, and resource coverage meters.
 - `src/events.ts`: event validation, local calendar lifecycle, capped aggregation, and guarded storage.
 - `src/events-ui.ts`: accessible event editor, cross-tab synchronization, and expiry scheduling.
 - `src/offline.ts`: service-worker registration and updates.
