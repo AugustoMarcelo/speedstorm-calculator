@@ -47,11 +47,21 @@ Only whole numbers within the valid ranges are accepted. Negative values, fracti
 
 Use **Events** to add multiple named events for the single Racer currently being planned. Enter the Racer Shards still obtainable and an inclusive end date. Edit or remove entries with the adjacent controls. Names must contain 1–100 characters after trimming; reward quantities are required nonnegative safe integers (zero is allowed). Dates must be real calendar dates today or later. Event errors appear beside the relevant field.
 
-Owned inventory is applied first, then event rewards are capped at the remaining shard requirement. For a 15-shard target with 5 owned shards and events worth 4 and 3 shards, the projected shortage is 3. Tune Coins and Star Fragment progress are unaffected. The summary separates inventory from planned events and explicitly describes results that depend on uncollected rewards as projected. As rewards are collected, reduce the event amount and update inventory manually to avoid double counting. There is no Racer catalogue or automatic discovery; remove existing events when switching Racer.
+Owned inventory is applied first, then event rewards are capped at the remaining shard requirement. For a 15-shard target with 5 owned shards and events worth 4 and 3 shards, the projected shortage is 3. Tune Coins and Star Fragment progress are unaffected. The summary separates inventory from planned events and explicitly describes results that depend on uncollected rewards as projected. As rewards are collected, reduce the event amount and update inventory manually to avoid double counting. There is no Racer catalogue or automatic discovery. Opening a saved calculation replaces working events with that goal’s events; New calculation clears them. For an unnamed calculation, remove existing events when switching Racer.
 
 Events persist separately in `localStorage` under `speedstorm:events:v1`, including across ordinary reloads, revisits, offline use, and accepted app updates. **Reset retains events** and resets only calculator fields. Events remain active throughout their end date in the device's local timezone. At the next local midnight they are removed from the list, storage, and calculation without crediting inventory. Cleanup also runs before using saved events on startup and when returning to a suspended tab. Closed pages cannot execute cleanup. Midnight scheduling uses local calendar arithmetic, including daylight-saving transitions; other-tab edits and deletions synchronize through storage events.
 
-Malformed saved records are ignored. If storage cannot be read or written, a visible warning explains that changes cannot be saved. Events remain usable in memory in the current tab; they may be lost on reload. Inventory retains its existing reload behavior.
+Malformed saved records are ignored. If storage cannot be read or written, a visible warning explains that changes cannot be saved. Events remain usable in memory in the current tab; they may be lost on reload. Calculator fields start fresh on ordinary reload; use Saved calculations to reopen a goal.
+
+### Saved calculations
+
+Enter a **Calculation name** (1–100 characters after trimming), such as “Lightning McQueen — 4 Stars”, then **Save calculation**. This saves current and target Stars and Star Fragments, both inventory balances, optional Current MPL, and a separate copy of planned events. Multiple goals may share a name; each has its own ID. The list shows progress and last-saved time. **Open** restores the inputs and recomputes results, removing expired events without adding rewards to inventory.
+
+Results update immediately as you edit; **Unsaved changes** means the saved record has not changed. **Save changes** updates the opened record; **Save as new** creates another independent goal. Save or cancel unfinished event edits before saving the calculation. Invalid fields cannot replace a saved goal. Opening another goal or choosing **New calculation** offers Save / Discard / Cancel when edits are unsaved. New calculation clears the name, inputs, and events. **Reset** resets calculator fields, retains working events, and leaves saved records unchanged until explicitly saved. Delete requires confirmation; deleting the opened record keeps its working values as an unsaved calculation.
+
+Calculations are stored only in this browser/origin, under `speedstorm:calculations:v1`, with schema version 1. They survive reloads, browser restarts, and offline visits; ordinary startup lists them for explicit reopening. There is no account, cloud sync, export, or automatic resource collection. Clearing site data removes them. Storage/version errors appear visibly and retain working edits for retry; unsupported or unreadable collections are not overwritten. Malformed records are skipped while valid siblings remain available.
+
+Other tabs refresh the saved list without replacing an opened calculation's working values or events. Sequential saves reread storage and merge by ID, retaining unrelated records; simultaneous writes are not transactional. If another tab deletes the opened record, use Save as new. Legacy working events synchronize across tabs until a calculation is saved, opened, or explicitly started with New calculation. This isolation continues after deleting the active saved record.
 
 ### Upgrade planning and MPL rewards
 
@@ -97,7 +107,7 @@ Projected target shortage is `Math.max(0, shortageAfterInventoryAndEvents - rema
 
 The build generates `dist/sw.js` with every local app file in its precache: HTML, CSS, JavaScript, fonts, manifest, and icons. The cache version includes the file contents and service-worker template. Precache must finish successfully before the worker activates. Wait for **“Available offline”** in the footer before going offline.
 
-When an update is ready, the app shows **“A new version is available”**. Selecting **Update** saves each tab’s fields in that tab’s `sessionStorage` and restores them after reload. Old caches from this app scope are removed; other apps’ caches are left alone. If storage is unavailable, the app does not force a reload that would lose the fields. A regular page reload starts with fresh values.
+When an update is ready, the app shows **“A new version is available”**. Selecting **Update** saves each tab’s fields, active saved ID, calculation name, working events, unfinished event editor, and dirty status in that tab’s `sessionStorage` and restores them after reload. Older update snapshots remain compatible; restored drafts never implicitly update saved records. Old caches from this app scope are removed; other apps’ caches are left alone. If storage is unavailable, the app does not force a reload that would lose the fields. A regular page reload starts with fresh calculator values and lists saved calculations for explicit reopening; working events remain available.
 
 Without service-worker support, the calculator continues to work online. Fonts are served locally through Fontsource under the SIL Open Font License. Favicon, Apple touch, and PWA icons are generated locally. Recreate the icon assets with `node scripts/generate-icons.mjs`.
 
@@ -128,6 +138,8 @@ Keep the leading and trailing slashes. The manifest uses relative URLs and the s
 - `src/main.ts`, `src/progress-ui.ts`, and `src/style.css`: interface, visual progression track, and resource coverage meters.
 - `src/events.ts`: event validation, local calendar lifecycle, capped aggregation, and guarded storage.
 - `src/events-ui.ts`: accessible event editor, cross-tab synchronization, and expiry scheduling.
+- `src/saved-calculations.ts`: versioned input validation, browser-local collection reads and ID-based mutations.
+- `src/saved-calculations-ui.ts`: explicit saves, saved-goal list, dirty guards, deletion confirmation, and active update context.
 - `src/offline.ts`: service-worker registration and updates.
 - `scripts/build-sw.mjs` and `scripts/sw-template.js`: precache generation.
 - `scripts/generate-icons.mjs` and `public/favicon*`: browser favicons; `public/icons`: Apple touch and PWA icons.

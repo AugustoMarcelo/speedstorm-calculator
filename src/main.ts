@@ -10,6 +10,8 @@ import { affordableProgress, shardLimitedProgress, nextUpgrades, parseMpl, remai
 import { MPL_REWARDS } from './mpl-rewards';
 import { setupOffline } from './offline';
 import { eventContribution } from './events';
+import { checkedInputs, type SavedInputs } from './saved-calculations';
+import { setupSavedCalculations } from './saved-calculations-ui';
 import { setupEvents } from './events-ui';
 import { renderProgressTrack, renderResourceCoverage } from './progress-ui';
 
@@ -23,6 +25,7 @@ const panel = document.querySelector<HTMLElement>('.result-panel')!;
 const format = new Intl.NumberFormat('en-US');
 const starIcon = '<svg aria-hidden="true"><use href="#icon-star"/></svg>';
 const snapshotKey = 'speedstorm:update-fields';
+let savedCalculations: ReturnType<typeof setupSavedCalculations> | undefined;
 
 function text(id: string, value: string) {
   document.getElementById(id)!.textContent = value;
@@ -81,6 +84,12 @@ function restore() {
     balance.value = state.balance;
     tuneCoinBalance.value = typeof state.tuneCoinBalance === 'string' ? state.tuneCoinBalance : '0';
     currentMpl.value = typeof state.currentMpl === 'string' ? state.currentMpl : '';
+    if (Array.isArray(state.events)) {
+      const checked = checkedInputs({ ...state, balance: 0, tuneCoinBalance: 0, currentMpl: null });
+      if (checked) events.replace(checked.events);
+    }
+    if (state.eventEditor && typeof state.eventEditor === 'object') events.restoreEditor(state.eventEditor);
+    if (state.savedContext && typeof state.savedContext === 'object') savedCalculations?.restore(state.savedContext);
   } catch {
     // Storage may be unavailable or contain data from an older version.
   }
@@ -127,6 +136,7 @@ function updateInventoryProgress(input: CalculatorInput, shardBalance: number | 
 }
 
 function update() {
+  savedCalculations?.changed();
   const currentStars = selected('currentStars');
   const completedSteps = selected('completedSteps');
   const targetStars = selected('targetStars');
@@ -165,7 +175,7 @@ function update() {
     tuneCoinBalance: parsedTuneCoinBalance ?? 0,
   };
   const inventoryResult = calculate(input);
-  const result = calculate({ ...input, eventShards: eventContribution(getEvents(), inventoryResult.missing) });
+  const result = calculate({ ...input, eventShards: eventContribution(events.get(), inventoryResult.missing) });
   const projected = result.appliedEventShards > 0;
   const invalidInventory = invalidShards || invalidTuneCoins;
   updateInventoryProgress(input, parsedBalance, parsedTuneCoinBalance);
@@ -269,7 +279,7 @@ form.addEventListener('input', event => {
   update();
 });
 form.addEventListener('submit', event => event.preventDefault());
-form.addEventListener('reset', () => setTimeout(update, 0));
+form.addEventListener('reset', () => setTimeout(() => { savedCalculations?.reset(); update(); }, 0));
 
 document.querySelectorAll('[data-season]').forEach(element => { element.textContent = String(PROGRESSION.season); });
 document.querySelector<HTMLAnchorElement>('#source-link')!.href = PROGRESSION.source;
@@ -280,9 +290,32 @@ document.getElementById('progression-table')!.innerHTML = PROGRESSION.starCosts.
 document.querySelector<HTMLAnchorElement>('#mpl-source-link')!.href = MPL_REWARDS.source;
 text('mpl-lookup-date', `Lookup date: ${MPL_REWARDS.lookupDate}. Schedule selected for this planning model; live source verification unavailable.`);
 
-const getEvents = setupEvents(update);
+const events = setupEvents(update, () => savedCalculations?.canSyncEvents() ?? true);
+savedCalculations = setupSavedCalculations({
+  capture: () => ({ ...snapshot(), events: events.get(), eventEditor: events.editor() }),
+  inputs: () => {
+    const state = snapshot();
+    const parsedBalance = parseBalance(state.balance);
+    const parsedCoins = parseBalance(state.tuneCoinBalance);
+    const parsedMpl = parseMpl(state.currentMpl);
+    if (parsedBalance === null || parsedCoins === null || parsedMpl === null) return null;
+    return checkedInputs({ ...state, balance: parsedBalance, tuneCoinBalance: parsedCoins, currentMpl: parsedMpl ?? null, events: events.get() });
+  },
+  apply: (value: SavedInputs) => {
+    select('currentStars', value.currentStars);
+    select('completedSteps', value.completedSteps);
+    select('targetStars', value.targetStars);
+    select('targetSteps', value.targetSteps);
+    balance.value = String(value.balance);
+    tuneCoinBalance.value = String(value.tuneCoinBalance);
+    currentMpl.value = value.currentMpl === null ? '' : String(value.currentMpl);
+    events.replace(value.events);
+  },
+  reset: () => { form.reset(); events.replace([]); },
+  hasEventEdit: events.hasUncommittedEdit,
+});
 restore();
 update();
 setupOffline(() => {
-  sessionStorage.setItem(snapshotKey, JSON.stringify(snapshot()));
+  sessionStorage.setItem(snapshotKey, JSON.stringify({ ...snapshot(), events: events.get(), eventEditor: events.editor(), savedContext: savedCalculations?.context() }));
 });
