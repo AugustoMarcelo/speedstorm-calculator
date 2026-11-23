@@ -16,22 +16,18 @@ export function renderProgressTrack(input: CalculatorInput, potential: Progress 
       return `<span class="fragment-${state}${position === target ? ' fragment-target' : ''}" aria-hidden="true"></span>`;
     }).join('');
   }
-  document.getElementById('first-star-progress')!.hidden = input.currentStars > 0;
-  document.getElementById('first-star-progress')!.setAttribute('aria-label', `First star: ${Math.min(5, current)} of 5 fragments unlocked, ${Math.max(0, Math.min(5, available) - current)} available now.`);
-  document.getElementById('first-star-fragments')!.innerHTML = fragmentsAfter(0);
   document.getElementById('progression-track')!.innerHTML = Array.from({ length: MAX_STARS }, (_, index) => {
     const star = index + 1;
-    const start = star * PROGRESSION.stepsPerStar;
-    const end = start + PROGRESSION.stepsPerStar;
+    const start = (star - 1) * PROGRESSION.stepsPerStar;
+    const end = star * PROGRESSION.stepsPerStar;
     const unlocked = Math.min(PROGRESSION.stepsPerStar, Math.max(0, current - start));
     const affordableCount = Math.max(0, Math.min(end, available) - Math.max(start, current));
     const potentialCount = Math.max(0, Math.min(end, possible) - Math.max(start, available));
     const isTarget = input.targetStars === star;
-    const nextLabel = star === MAX_STARS ? 'Maximum star. No further fragments.' : `Toward star ${star + 1}: ${unlocked} of 5 fragments unlocked, ${affordableCount} available now, ${potentialCount} supported by shards only.`;
-    const state = start <= current ? 'current' : start <= available ? 'affordable' : start <= possible ? 'potential' : 'locked';
-    const label = `Star ${star}: ${state === 'current' ? 'unlocked' : state === 'affordable' ? 'available now' : state === 'potential' ? 'supported by shards only' : 'locked'}. ${nextLabel}${isTarget ? ' Selected target.' : ''}`;
+    const state = end <= current ? 'current' : end <= available ? 'affordable' : end <= possible ? 'potential' : 'locked';
+    const label = `Star ${star}: ${state === 'current' ? 'unlocked' : state === 'affordable' ? 'available now' : state === 'potential' ? 'supported by shards only' : 'locked'}. Toward Star ${star}: ${unlocked} of 5 fragments unlocked, ${affordableCount} available now, ${potentialCount} supported by shards only.${isTarget ? ' Selected target.' : ''}`;
     const icon = `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-star"/><text x="12" y="12">${star}</text></svg>`;
-    return `<li class="track-star star-${state}${isTarget ? ' star-target' : ''}" aria-label="${label}"><div class="track-star-icon">${icon}</div>${star === MAX_STARS ? '' : `<div class="track-fragments">${fragmentsAfter(start)}</div>`}</li>`;
+    return `<li class="track-star star-${state}${isTarget ? ' star-target' : ''}" aria-label="${label}"><div class="track-star-icon">${icon}</div><div class="track-fragments">${fragmentsAfter(start)}</div></li>`;
   }).join('');
   document.getElementById('inventory-upgrade-status')!.textContent = affordable === null
     ? 'Correct your inventory to see which upgrades are available now.'
