@@ -46,12 +46,15 @@ test('visual progression separates owned progress, affordability, and shard pote
   await page.getByLabel('Racer Shards in inventory').fill('23');
   await page.getByLabel('Tune Coins in inventory').fill('1400');
   const track = page.getByRole('list', { name: 'Upgrade progression' });
-  await expect(track.locator('.fragment-current')).toHaveCount(8);
-  await expect(track.locator('li').last().locator('.track-fragments')).toHaveCount(0);
-  await expect(track.locator('li').nth(1).locator('.fragment-affordable')).toHaveCount(2);
+  await expect(track.locator('.fragment-current')).toHaveCount(13);
+  await expect(track.locator('li')).toHaveCount(6);
+  await expect(track.locator('li').nth(2).locator('.fragment-affordable')).toHaveCount(2);
   await expect(track.locator('.fragment-affordable')).toHaveCount(2);
   await expect(track.locator('.fragment-potential')).toHaveCount(1);
   await expect(track.locator('.fragment-target')).toHaveCount(1);
+  await expect(track.locator('li').nth(2)).toHaveClass(/star-target/);
+  await expect(track.locator('li').nth(3).locator('.fragment-target')).toHaveCount(1);
+  await expect(track.locator('li').nth(3).locator('.track-fragments > span').first()).toHaveClass(/fragment-target/);
   await expect(page.getByRole('meter', { name: 'Racer Shards for target' })).toHaveAttribute('aria-valuenow', '23');
   await expect(page.getByRole('meter', { name: 'Tune Coins for target' })).toHaveAttribute('aria-valuenow', '1400');
   await expect(page.locator('#coins-coverage-status')).toHaveText('900 still needed');
@@ -69,15 +72,37 @@ test('visual progression separates owned progress, affordability, and shard pote
   await expect(page.getByRole('meter', { name: 'Tune Coins for target' })).toBeHidden();
   await page.getByLabel('Racer Shards in inventory').fill('invalid');
   await expect(track.locator('.fragment-potential')).toHaveCount(0);
-  await expect(track.locator('.fragment-current')).toHaveCount(8);
+  await expect(track.locator('.fragment-current')).toHaveCount(13);
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
-  await expect(track.locator('.fragment-locked')).toHaveCount(25);
-  await expect(page.locator('#first-star-fragments .fragment-locked')).toHaveCount(5);
+  await expect(track.locator('.fragment-locked')).toHaveCount(30);
   await expect(page.locator('#shards-coverage-status')).toHaveText('15 still needed');
   await choose(page, 'currentStars', 6);
-  await expect(track.locator('.fragment-current')).toHaveCount(25);
-  await expect(page.locator('#first-star-progress')).toBeHidden();
+  await expect(track.locator('.fragment-current')).toHaveCount(30);
   await expect(page.locator('#inventory-upgrade-status')).toHaveText('All 6 stars unlocked. Your Racer is fully upgraded.');
+});
+
+test('progression groups describe destination Stars and preserve reported inventory semantics', async ({ page }) => {
+  await page.goto('./');
+  await choose(page, 'currentStars', 2);
+  await choose(page, 'targetStars', 4);
+  await page.getByLabel('Racer Shards in inventory').fill('110');
+  await page.getByLabel('Tune Coins in inventory').fill('4000');
+
+  const stars = page.getByRole('list', { name: 'Upgrade progression' }).locator('li');
+  await expect(stars).toHaveCount(6);
+  for (const index of [0, 1]) {
+    await expect(stars.nth(index)).toHaveAttribute('aria-label', new RegExp(`Star ${index + 1}: unlocked`));
+    await expect(stars.nth(index).locator('.fragment-current')).toHaveCount(5);
+  }
+  await expect(stars.nth(2).locator('.fragment-affordable')).toHaveCount(5);
+  await expect(stars.nth(3).locator('.fragment-potential')).toHaveCount(5);
+  await expect(stars.nth(4).locator('.fragment-potential')).toHaveCount(2);
+  await expect(stars.nth(5).locator('.track-fragments > span')).toHaveCount(5);
+  await expect(stars.nth(5).locator('.fragment-locked')).toHaveCount(5);
+  await expect(stars.nth(3)).toHaveClass(/star-target/);
+  await expect(stars.nth(3).locator('.fragment-target')).toHaveCount(1);
+  await expect(page.locator('#affordable-progress')).toContainText('3 stars');
+  await expect(page.locator('#shard-progress')).toContainText('4 stars + 2/5');
 });
 
 test('calculates examples, reports errors, and resets', async ({ page }) => {
